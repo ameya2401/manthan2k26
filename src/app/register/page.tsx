@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Event, RegistrationFormData, TeamMember, TeamRegistration } from '@/lib/types';
 import {
@@ -478,22 +480,10 @@ function RegisterForm() {
 
     return (
         <div className="min-h-screen bg-manthan-black flex flex-col">
-            {/* Minimal Header */}
-            <header className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-                <Link href="/" className="flex items-center gap-2 group">
-                    <span className="font-heading text-xl font-bold text-gold-gradient">MANTHAN</span>
-                    <span className="text-[10px] text-manthan-gold/40 font-body">2026</span>
-                </Link>
-                <Link
-                    href="/"
-                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5 transition-colors text-gray-500 hover:text-gray-300"
-                >
-                    <X size={18} />
-                </Link>
-            </header>
+            <Navbar />
 
-            {/* Progress Bar */}
-            <div className="px-6 pt-6">
+            {/* Progress Bar Container */}
+            <div className="pt-24 px-6 md:pt-32">
                 <div className="max-w-2xl mx-auto">
                     {/* Step indicators */}
                     <div className="flex items-center justify-between mb-2">
@@ -660,6 +650,10 @@ function RegisterForm() {
                         </button>
                     )}
                 </div>
+            </div>
+
+            <div className="mt-auto">
+                <Footer />
             </div>
         </div>
     );

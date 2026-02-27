@@ -60,6 +60,8 @@ export default function Navbar() {
                         ))}
                         <Link
                             href="/register"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="px-6 py-2 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white text-xs font-bold rounded-full hover:shadow-[0_0_20px_rgba(220,20,60,0.4)] transition-all duration-500 uppercase tracking-widest border border-white/10"
                         >
                             Register
@@ -106,6 +108,8 @@ export default function Navbar() {
                     ))}
                     <Link
                         href="/register"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={() => setIsOpen(false)}
                         className="py-4 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-xl uppercase tracking-widest shadow-lg shadow-manthan-maroon/20"
                     >

@@ -183,6 +183,8 @@ export default async function EventDetailPage({
                         <div className="flex flex-col sm:flex-row gap-4">
                             <Link
                                 href={`/register?event=${event.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="flex-1 py-4 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-lg text-center text-lg hover:from-manthan-crimson hover:to-manthan-maroon transition-all duration-300 shadow-xl shadow-manthan-maroon/30"
                             >
                                 Register for {event.name}
