@@ -24,96 +24,38 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const hasStartedRef = useRef(false);
 
+    // Resolve source once on mount (not via state to avoid extra render)
+    const videoSrc = useRef(getVideoSrc()).current;
+
     const handleVideoEnd = useCallback(() => {
         setIsVisible(false);
         setTimeout(onComplete, 1000);
     }, [onComplete]);
 
-    // Fetch video via chunked streaming (MediaSource) or fallback to direct src
+    // Play video as soon as enough data is available
     useEffect(() => {
         const video = videoRef.current;
         if (!video || hasStartedRef.current) return;
         hasStartedRef.current = true;
 
-        const src = getVideoSrc();
+        const onReady = () => {
+            setIsBuffering(false);
+            video.play().catch(() => { });
+        };
 
-        // Try MediaSource API for chunked progressive loading
-        if ('MediaSource' in window && MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E"')) {
-            const mediaSource = new MediaSource();
-            video.src = URL.createObjectURL(mediaSource);
-
-            mediaSource.addEventListener('sourceopen', async () => {
-                const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E"');
-
-                try {
-                    const response = await fetch(src);
-                    if (!response.ok || !response.body) throw new Error('Fetch failed');
-
-                    const reader = response.body.getReader();
-                    let firstChunkLoaded = false;
-
-                    const pump = async (): Promise<void> => {
-                        const { done, value } = await reader.read();
-                        if (done) {
-                            if (!sourceBuffer.updating) {
-                                mediaSource.endOfStream();
-                            } else {
-                                sourceBuffer.addEventListener('updateend', () => {
-                                    if (mediaSource.readyState === 'open') mediaSource.endOfStream();
-                                }, { once: true });
-                            }
-                            return;
-                        }
-
-                        if (sourceBuffer.updating) {
-                            await new Promise<void>(resolve => {
-                                sourceBuffer.addEventListener('updateend', () => resolve(), { once: true });
-                            });
-                        }
-
-                        sourceBuffer.appendBuffer(value);
-
-                        if (!firstChunkLoaded) {
-                            firstChunkLoaded = true;
-                            await new Promise<void>(resolve => {
-                                sourceBuffer.addEventListener('updateend', () => resolve(), { once: true });
-                            });
-                            setIsBuffering(false);
-                            video.play().catch(() => { });
-                        }
-
-                        return pump();
-                    };
-
-                    await pump();
-                } catch {
-                    // Fallback: direct src
-                    video.src = src;
-                    video.load();
-                    setIsBuffering(false);
-                    video.play().catch(() => { });
-                }
-            });
+        // Video may already be cached and ready
+        if (video.readyState >= 3) {
+            onReady();
         } else {
-            // Fallback for browsers without MediaSource (e.g. iOS Safari)
-            video.src = src;
-            video.load();
-
-            const onReady = () => {
-                setIsBuffering(false);
-                video.play().catch(() => { });
-            };
-
-            // Handle race condition: video may already be cached & ready
-            if (video.readyState >= 3) {
-                onReady();
-            } else {
-                video.addEventListener('canplay', onReady, { once: true });
-            }
+            video.addEventListener('canplay', onReady, { once: true });
         }
+
+        return () => {
+            video.removeEventListener('canplay', onReady);
+        };
     }, []);
 
-    // Safety fallback - skip intro if video never loads
+    // Safety fallback - skip intro if video never loads within 15s
     useEffect(() => {
         const timer = setTimeout(() => {
             if (isVisible) {
@@ -135,7 +77,7 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                     style={{ height: '100svh' }}
                 >
                     {isBuffering && (
-                        <div className="absolute inset-0 z-[10001] flex items-center justify-center bg-black">
+                        <div className="absolute inset-0 z-[10001] flex items-center justify-center">
                             <div className="w-10 h-10 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
                         </div>
                     )}
@@ -144,8 +86,10 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                         ref={videoRef}
                         muted
                         playsInline
+                        autoPlay
                         preload="auto"
-                        poster="/bg-zodiac.jpg"
+                        poster="/intro-poster.jpg"
+                        src={videoSrc}
                         onEnded={handleVideoEnd}
                         className="absolute top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover"
                         style={{
