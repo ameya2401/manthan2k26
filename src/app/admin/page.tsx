@@ -26,7 +26,8 @@ export default function AdminLoginPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || 'Login failed');
+                const debugReason = data?.debug?.reason ? ` (${data.debug.reason})` : '';
+                setError((data.error || 'Login failed') + debugReason);
                 return;
             }
 

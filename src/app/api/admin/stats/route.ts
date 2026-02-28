@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { getActiveEvents } from '@/lib/events-catalog';
 
 async function verifyAdmin(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
@@ -9,13 +10,27 @@ async function verifyAdmin(request: NextRequest) {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) return null;
 
-    const { data: adminUser } = await supabaseAdmin
+    const { data: adminById } = await supabaseAdmin
         .from('admin_users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-    return adminUser;
+    if (adminById) {
+        return adminById;
+    }
+
+    if (!user.email) {
+        return null;
+    }
+
+    const { data: adminByEmail } = await supabaseAdmin
+        .from('admin_users')
+        .select('*')
+        .ilike('email', user.email)
+        .maybeSingle();
+
+    return adminByEmail;
 }
 
 export async function GET(request: NextRequest) {
@@ -52,10 +67,13 @@ export async function GET(request: NextRequest) {
             .select('*', { count: 'exact', head: true })
             .eq('payment_status', 'PENDING');
 
-        // Events breakdown
-        const { data: events } = await supabaseAdmin
-            .from('events')
-            .select('id, name, category, current_participants, max_participants');
+        const events = getActiveEvents().map((event) => ({
+            id: event.id,
+            name: event.name,
+            category: event.category,
+            current_participants: event.current_participants,
+            max_participants: event.max_participants,
+        }));
 
         return NextResponse.json({
             stats: {
@@ -64,7 +82,7 @@ export async function GET(request: NextRequest) {
                 checkedIn: checkedIn || 0,
                 pendingPayments: pendingPayments || 0,
             },
-            events: events || [],
+            events,
         });
     } catch (err) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

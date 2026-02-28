@@ -13,6 +13,13 @@ type TeamRegistrationPayload = {
     members: Array<{ name: string }>;
 };
 
+type DbErrorLike = {
+    code?: string;
+    message?: string;
+    details?: string;
+    hint?: string;
+};
+
 function getTeamBounds(event: {
     team_size: number;
     team_size_fixed: number | null;
@@ -62,6 +69,54 @@ function getClientIp(request: NextRequest): string {
     }
 
     return request.headers.get('x-real-ip') || 'unknown';
+}
+
+function toDbErrorLike(error: unknown): DbErrorLike {
+    if (!error || typeof error !== 'object') {
+        return {};
+    }
+
+    const candidate = error as Record<string, unknown>;
+    return {
+        code: typeof candidate.code === 'string' ? candidate.code : undefined,
+        message: typeof candidate.message === 'string' ? candidate.message : undefined,
+        details: typeof candidate.details === 'string' ? candidate.details : undefined,
+        hint: typeof candidate.hint === 'string' ? candidate.hint : undefined,
+    };
+}
+
+function extractMissingColumnFromError(error: unknown): string | null {
+    const parsedError = toDbErrorLike(error);
+    const haystacks = [parsedError.message, parsedError.details, parsedError.hint]
+        .filter(Boolean)
+        .map((value) => String(value));
+
+    for (const text of haystacks) {
+        const relationMatch = text.match(/column\s+["']?([a-zA-Z_][a-zA-Z0-9_]*)["']?\s+of\s+relation\s+["']?registrations["']?\s+does\s+not\s+exist/i);
+        if (relationMatch?.[1]) {
+            return relationMatch[1];
+        }
+
+        const schemaCacheMatch = text.match(/Could not find the ['"]([a-zA-Z_][a-zA-Z0-9_]*)['"] column of ['"]registrations['"] in the schema cache/i);
+        if (schemaCacheMatch?.[1]) {
+            return schemaCacheMatch[1];
+        }
+    }
+
+    return null;
+}
+
+function isTicketIdUniqueViolation(error: unknown): boolean {
+    const parsedError = toDbErrorLike(error);
+    const code = String(parsedError.code || '');
+    const message = String(parsedError.message || '');
+    const details = String(parsedError.details || '');
+
+    if (code === '23505' && /ticket_id/i.test(`${message} ${details}`)) {
+        return true;
+    }
+
+    return /duplicate key value violates unique constraint/i.test(message) && /ticket_id/i.test(`${message} ${details}`);
 }
 
 export async function POST(request: NextRequest) {
@@ -188,7 +243,7 @@ export async function POST(request: NextRequest) {
 
         // Generate ticket ID
         const primaryCategory = events[0]?.category || 'gen';
-        const ticketId = generateTicketId(primaryCategory);
+        let ticketId = generateTicketId(primaryCategory);
 
         // Create Razorpay order
         const razorpay = getRazorpay();
@@ -207,7 +262,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Store PENDING registration (not confirmed until payment verified)
-        const { error: insertError } = await supabaseAdmin.from('registrations').insert({
+        const baseInsertPayload: Record<string, unknown> = {
             ticket_id: ticketId,
             name: sanitizeInput(name),
             email: email.toLowerCase().trim(),
@@ -220,12 +275,49 @@ export async function POST(request: NextRequest) {
             total_amount: totalAmountPaise,
             payment_status: 'PENDING',
             razorpay_order_id: order.id,
-        });
+        };
+
+        let insertError: DbErrorLike | null = null;
+        let insertPayload: Record<string, unknown> = { ...baseInsertPayload };
+
+        for (let attempt = 1; attempt <= 4; attempt++) {
+            const { error } = await supabaseAdmin.from('registrations').insert(insertPayload);
+
+            if (!error) {
+                insertError = null;
+                break;
+            }
+
+            insertError = toDbErrorLike(error);
+
+            if (isTicketIdUniqueViolation(error)) {
+                ticketId = generateTicketId(primaryCategory);
+                insertPayload = {
+                    ...insertPayload,
+                    ticket_id: ticketId,
+                };
+                continue;
+            }
+
+            const missingColumn = extractMissingColumnFromError(error);
+            if (missingColumn && Object.prototype.hasOwnProperty.call(insertPayload, missingColumn)) {
+                const rest = { ...insertPayload };
+                delete rest[missingColumn];
+                insertPayload = rest;
+                console.warn(`registrations insert retrying without missing column: ${missingColumn}`);
+                continue;
+            }
+
+            break;
+        }
 
         if (insertError) {
             console.error('Failed to create registration (Supabase Error):', insertError);
             return NextResponse.json(
-                { error: 'Failed to create registration in database.', details: insertError.message },
+                {
+                    error: `Failed to create registration in database. ${insertError.message || ''}`.trim(),
+                    details: insertError.message,
+                },
                 { status: 500 }
             );
         }
@@ -238,15 +330,20 @@ export async function POST(request: NextRequest) {
             },
             ticket_id: ticketId,
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error('Unknown error');
+        const responseData =
+            typeof err === 'object' && err !== null && 'response' in err
+                ? (err as { response?: { data?: unknown } }).response?.data
+                : undefined;
         console.error('Create order error details:', {
-            message: err.message,
-            stack: err.stack,
-            cause: err.cause,
-            response: err.response?.data
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause,
+            response: responseData,
         });
         return NextResponse.json(
-            { error: 'Internal server error. Please try again.', details: err.message },
+            { error: 'Internal server error. Please try again.', details: error.message },
             { status: 500 }
         );
     }

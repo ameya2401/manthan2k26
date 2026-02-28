@@ -50,9 +50,15 @@ export interface Registration {
     team_registrations: TeamRegistration[];
     total_amount: number; // in paise
     payment_status: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+    payment_method: 'razorpay' | 'cash' | null;
     razorpay_order_id: string | null;
     razorpay_payment_id: string | null;
     razorpay_signature: string | null;
+    cash_amount: number | null;
+    cash_received_by: string | null;
+    cash_received_at: string | null;
+    cash_receipt_number: string | null;
+    cash_notes: string | null;
     checked_in: boolean;
     checked_in_at: string | null;
     checked_in_by: string | null;
@@ -91,4 +97,18 @@ export interface AdminUser {
     role: 'admin' | 'staff';
     name: string | null;
     created_at: string;
+}
+
+export interface ManualCashEntry {
+    id: string;
+    payer_name: string;
+    payer_phone: string | null;
+    payer_email: string | null;
+    amount: number;
+    receipt_number: string | null;
+    notes: string | null;
+    collected_by: string | null;
+    collected_at: string;
+    created_at: string;
+    updated_at: string;
 }

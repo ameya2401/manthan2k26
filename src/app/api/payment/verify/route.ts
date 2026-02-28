@@ -5,6 +5,12 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 import { paymentVerificationSchema } from '@/lib/validations';
 import { checkRateLimit } from '@/lib/rate-limit';
 
+type DbErrorLike = {
+    message?: string;
+    details?: string;
+    hint?: string;
+};
+
 function getClientIp(request: NextRequest): string {
     const forwardedFor = request.headers.get('x-forwarded-for');
     if (forwardedFor) {
@@ -12,6 +18,76 @@ function getClientIp(request: NextRequest): string {
     }
 
     return request.headers.get('x-real-ip') || 'unknown';
+}
+
+function toDbErrorLike(error: unknown): DbErrorLike {
+    if (!error || typeof error !== 'object') {
+        return {};
+    }
+
+    const candidate = error as Record<string, unknown>;
+    return {
+        message: typeof candidate.message === 'string' ? candidate.message : undefined,
+        details: typeof candidate.details === 'string' ? candidate.details : undefined,
+        hint: typeof candidate.hint === 'string' ? candidate.hint : undefined,
+    };
+}
+
+function extractMissingColumnFromError(error: unknown): string | null {
+    const parsed = toDbErrorLike(error);
+    const haystacks = [parsed.message, parsed.details, parsed.hint]
+        .filter(Boolean)
+        .map((value) => String(value));
+
+    for (const text of haystacks) {
+        const relationMatch = text.match(/column\s+["']?([a-zA-Z_][a-zA-Z0-9_]*)["']?\s+of\s+relation\s+["']?registrations["']?\s+does\s+not\s+exist/i);
+        if (relationMatch?.[1]) {
+            return relationMatch[1];
+        }
+
+        const schemaCacheMatch = text.match(/Could not find the ['"]([a-zA-Z_][a-zA-Z0-9_]*)['"] column of ['"]registrations['"] in the schema cache/i);
+        if (schemaCacheMatch?.[1]) {
+            return schemaCacheMatch[1];
+        }
+    }
+
+    return null;
+}
+
+async function updateRegistrationWithCompat(
+    where: { id?: string; razorpay_order_id?: string },
+    payload: Record<string, unknown>
+) {
+    let updatePayload = { ...payload };
+    let lastError: DbErrorLike | null = null;
+
+    for (let attempt = 1; attempt <= 4; attempt++) {
+        let query = supabaseAdmin.from('registrations').update(updatePayload);
+        if (where.id) {
+            query = query.eq('id', where.id);
+        }
+        if (where.razorpay_order_id) {
+            query = query.eq('razorpay_order_id', where.razorpay_order_id);
+        }
+
+        const { error } = await query;
+        if (!error) {
+            return null;
+        }
+
+        lastError = toDbErrorLike(error);
+        const missingColumn = extractMissingColumnFromError(error);
+        if (missingColumn && Object.prototype.hasOwnProperty.call(updatePayload, missingColumn)) {
+            const rest = { ...updatePayload };
+            delete rest[missingColumn];
+            updatePayload = rest;
+            continue;
+        }
+
+        break;
+    }
+
+    return lastError;
 }
 
 export async function POST(request: NextRequest) {
@@ -57,10 +133,10 @@ export async function POST(request: NextRequest) {
             });
 
             // Mark as failed
-            await supabaseAdmin
-                .from('registrations')
-                .update({ payment_status: 'FAILED' })
-                .eq('razorpay_order_id', razorpay_order_id);
+            await updateRegistrationWithCompat(
+                { razorpay_order_id },
+                { payment_status: 'FAILED' }
+            );
 
             return NextResponse.json(
                 { error: 'Payment verification failed. Signature mismatch.' },
@@ -98,22 +174,24 @@ export async function POST(request: NextRequest) {
             console.error('QR generation failed:', qrError);
         }
 
-        // Update registration: mark as PAID, store payment details, and QR code
-        const { error: updateError } = await supabaseAdmin
-            .from('registrations')
-            .update({
+        // Update registration: mark as PAID and store payment details
+        const updateError = await updateRegistrationWithCompat(
+            { id: registration.id },
+            {
                 payment_status: 'PAID',
                 razorpay_payment_id,
                 razorpay_signature,
                 qr_code: qrCodeDataUrl,
                 updated_at: new Date().toISOString(),
-            })
-            .eq('id', registration.id);
+            }
+        );
 
         if (updateError) {
             console.error('Failed to update registration:', updateError);
             return NextResponse.json(
-                { error: 'Failed to confirm registration. Contact support with your payment ID.' },
+                {
+                    error: `Failed to confirm registration. ${updateError.message || 'Contact support with your payment ID.'}`.trim(),
+                },
                 { status: 500 }
             );
         }

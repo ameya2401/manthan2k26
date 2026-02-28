@@ -18,7 +18,7 @@ const FAQS = [
     },
     {
         keywords: ['event', 'list', 'technical', 'cultural', 'sports'],
-        answer: "We have events across three categories: Technical (Coding, Hackathons, RoboWars), Cultural (Dance, Singing, Photography), and Sports (Cricket, Volleyball, Indoor games). You can explore them all on our 'Events' page!"
+        answer: "We have events across three categories: Technical (Prompt2Website: The Vibe Coding Challenge, TypeSprint: The Ultimate Typing Showdown, QuizStorm: Battle of Brains, CanvaCraft: The Poster Design Challenge), Cultural (NrityaVerse, SurTarang), and Sports (Cricket, Volleyball, Indoor games). You can explore them all on our 'Events' page!"
     },
     {
         keywords: ['register', 'how', 'sign up', 'apply'],
@@ -144,8 +144,8 @@ export default function Chatbot() {
                                             {msg.sender === 'user' ? <User size={14} className="text-manthan-gold" /> : <Bot size={14} className="text-manthan-maroon" />}
                                         </div>
                                         <div className={`p-3 rounded-xl text-xs sm:text-sm leading-relaxed ${msg.sender === 'user'
-                                                ? 'bg-manthan-gold/10 text-gray-200 rounded-tr-none'
-                                                : 'bg-white/5 text-gray-300 rounded-tl-none border border-white/5'
+                                            ? 'bg-manthan-gold/10 text-gray-200 rounded-tr-none'
+                                            : 'bg-white/5 text-gray-300 rounded-tl-none border border-white/5'
                                             }`}>
                                             {msg.text}
                                         </div>

@@ -82,10 +82,10 @@ export default function Footer() {
                     {/* Location Map */}
                     <div className="h-48 lg:h-full min-h-[200px] rounded-2xl overflow-hidden border border-manthan-gold/20 shadow-lg shadow-manthan-gold/5 group">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.49080775583!2d73.0427303!3d19.010214!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3d9fb38a201%3A0x6b1660bd215eb461!2sBharati%20Vidyapeeth&#39;s%20Institute%20Of%20Management%20And%20Information%20Technology%20(BVIMIT)!5e0!3m2!1sen!2sin!4v1700000000000"
+                            src="https://www.google.com/maps?q=Bharati%20Vidyapeeth%E2%80%99s%20Institute%20of%20Management%20%26%20Info%20Tech%20(MCA)%20Master%20of%20Computer%20Application%20under%20University%20of%20Mumbai&z=17&output=embed"
                             width="100%"
                             height="100%"
-                            style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(1.2)' }}
+                            style={{ border: 0 }}
                             allowFullScreen
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
