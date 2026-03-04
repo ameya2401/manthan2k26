@@ -78,7 +78,7 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                         playsInline
                         autoPlay
                         preload="auto"
-                        // @ts-ignore - fetchPriority is valid in modern browsers but not yet in React types
+                        // @ts-expect-error - fetchPriority is valid in modern browsers but not yet in React types
                         fetchPriority="high"
                         poster="/intro-poster.jpg"
                         src={videoSrc}
