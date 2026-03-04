@@ -47,8 +47,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <h3 className="text-manthan-gold font-medium">Email</h3>
-                                            <p className="text-gray-400 text-sm">manthan@bvimit.co.in</p>
-                                            <p className="text-gray-400 text-sm">support@manthan2026.in</p>
+                                            <p className="text-gray-400 text-sm">principal.bvimit@bharatividyapeeth.edu</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start space-x-4">
@@ -57,8 +56,8 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <h3 className="text-manthan-gold font-medium">Phone</h3>
-                                            <p className="text-gray-400 text-sm">+91 123 456 7890 (General)</p>
-                                            <p className="text-gray-400 text-sm">+91 123 456 7891 (Technical)</p>
+                                            <p className="text-gray-400 text-sm">022-27578415</p>
+                                            <p className="text-gray-400 text-sm">+91 8657008016</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start space-x-4">
@@ -68,35 +67,11 @@ export default function ContactPage() {
                                         <div>
                                             <h3 className="text-manthan-gold font-medium">Address</h3>
                                             <p className="text-gray-400 text-sm">
-                                                BVIMIT, Sector-8, Belapur,<br />
-                                                CBD, Navi Mumbai - 400614
+                                                Bharati Vidyapeeth&apos;s Institute of Management and Information Technology (BVIMIT),<br />
+                                                Sector-8, Belapur, CBD, Navi Mumbai - 400614
                                             </p>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            {/* Coordinators */}
-                            <div className="glass-card p-8">
-                                <h2 className="font-heading text-xl font-bold text-manthan-gold mb-4">
-                                    Event Coordinators
-                                </h2>
-                                <div className="space-y-3">
-                                    {[
-                                        { name: 'Uday Bhoi', role: 'General Secretary', phone: '+91 123 456 7890' },
-                                        { name: 'Ameya Bagwe', role: 'Technical Head', phone: '+91 123 456 7891' },
-                                        { name: 'Sameer Sawant', role: 'Cultural Head', phone: '+91 123 456 7892' },
-                                    ].map((coord) => (
-                                        <div key={coord.name} className="flex items-center justify-between p-3 rounded-lg bg-manthan-black/50">
-                                            <div>
-                                                <p className="text-gray-200 text-sm font-medium">{coord.name}</p>
-                                                <p className="text-gray-500 text-xs">{coord.role}</p>
-                                            </div>
-                                            <a href={`tel:${coord.phone}`} className="text-manthan-gold/60 hover:text-manthan-gold text-xs">
-                                                {coord.phone}
-                                            </a>
-                                        </div>
-                                    ))}
                                 </div>
                             </div>
                         </div>

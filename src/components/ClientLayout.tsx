@@ -25,39 +25,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const backgroundPlayedRef = useRef(false);
     const startTimeRef = useRef<number | null>(null);
 
-    const bgVideoSrc = 'https://k6iphva0ugo1rocg.public.blob.vercel-storage.com/night_bg.mp4';
+    const bgVideoSrc = 'https://manthan-cdn.ameyabhagat24.workers.dev/extended.mp4';
 
-    // Sync timing and handle manual loop fading
-    const handleTimeUpdate = () => {
-        const video = videoRef.current;
-        if (video && video.duration) {
-            // Bypass logic for short videos (e.g. < 10s) to avoid permanent fade-out
-            if (video.duration < 10) {
-                if (isLoopFading) setIsLoopFading(false);
-                return;
-            }
-
-            const fadeDuration = 4.5;
-            // Fade out starts 4.5s before end
-            if (video.currentTime > video.duration - fadeDuration) {
-                if (!isLoopFading) setIsLoopFading(true);
-            }
-            // Fade in starts immediately after reset
-            else if (video.currentTime < 4.5 && isLoopFading) {
-                // Wait for a tiny buffer to ensure the reset happened, then start fade-in
-                if (video.currentTime > 0.1) setIsLoopFading(false);
-            } else {
-                if (isLoopFading && video.currentTime > 4.5) setIsLoopFading(false);
-            }
-        }
-    };
+    // No early fade — video plays fully before fading
+    const handleTimeUpdate = () => { };
 
     const handleVideoLoop = () => {
-        if (videoRef.current) {
-            const video = videoRef.current;
-            video.currentTime = 0;
-            video.play().catch(() => { });
-        }
+        // Video ended — quick fade out, restart during fade, then fade back in
+        setIsLoopFading(true);
+        setTimeout(() => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = 0;
+                videoRef.current.play().catch(() => { });
+            }
+            setTimeout(() => setIsLoopFading(false), 300);
+        }, 800);
     };
 
     useEffect(() => {
@@ -138,7 +120,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 tabIndex={-1}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleVideoLoop}
-                className={`fixed top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover transition-all duration-[4500ms] ease-in-out ${(introComplete || !isLandingPage) && !isLoopFading && bgVideoReady ? 'opacity-45' : 'opacity-0'
+                className={`fixed top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover transition-opacity duration-[1500ms] ease-in-out ${(introComplete || !isLandingPage) && !isLoopFading && bgVideoReady ? 'opacity-30' : 'opacity-0'
                     } pointer-events-none bg-black`}
                 style={{
                     height: '110svh',
