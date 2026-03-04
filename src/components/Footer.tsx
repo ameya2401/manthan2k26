@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Globe, Instagram, Youtube, Facebook, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, Instagram, Facebook, Linkedin } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -19,10 +19,9 @@ export default function Footer() {
 
                         <div className="flex items-center justify-center md:justify-start space-x-4">
                             {[
-                                { icon: Instagram, href: 'https://instagram.com/manthan', color: 'hover:text-pink-500' },
-                                { icon: Youtube, href: 'https://youtube.com/manthan', color: 'hover:text-red-500' },
-                                { icon: Facebook, href: 'https://facebook.com/manthan', color: 'hover:text-blue-500' },
-                                { icon: Linkedin, href: 'https://linkedin.com/manthan', color: 'hover:text-blue-400' },
+                                { icon: Instagram, href: 'https://www.instagram.com/bharatividyapeeths_imit_mca/', color: 'hover:text-pink-500' },
+                                { icon: Facebook, href: 'https://www.facebook.com/bvimit/', color: 'hover:text-blue-500' },
+                                { icon: Linkedin, href: 'https://www.linkedin.com/in/bharati-vidyapeeth-institute-of-management-and-information-technology-705802225/', color: 'hover:text-blue-400' },
                             ].map((social, idx) => (
                                 <a
                                     key={idx}
@@ -102,13 +101,22 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-10 text-center">
-                    <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-2">
-                        Designed & Developed by BVIMIT Web Team
-                    </p>
-                    <p className="text-gray-600 text-[10px]">
-                        © 2026 Manthan Fest. All Rights Reserved.
-                    </p>
+                <div className="border-t border-white/5 pt-8 pb-4 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
+                        <Link href="/privacy-policy" className="hover:text-manthan-gold transition-colors duration-300">Privacy Policy</Link>
+                        <span className="text-gray-600">|</span>
+                        <Link href="/terms-and-conditions" className="hover:text-manthan-gold transition-colors duration-300">Terms & Conditions</Link>
+                        <span className="text-gray-600">|</span>
+                        <Link href="/refund-policy" className="hover:text-manthan-gold transition-colors duration-300">Refund Policy</Link>
+                    </div>
+                    <div className="text-center md:text-right">
+                        <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mb-1">
+                            Designed & Developed by BVIMIT Web Team
+                        </p>
+                        <p className="text-gray-600 text-[10px]">
+                            © 2026 Manthan Fest. All Rights Reserved.
+                        </p>
+                    </div>
                 </div>
             </div>
         </footer>

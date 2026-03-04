@@ -11,17 +11,27 @@ interface VideoIntroProps {
  * Determine video source synchronously to avoid hydration/source-switch issues.
  */
 function getVideoSrc(): string {
-    // We now use a single high-quality intro video hosted on Vercel CDN for both desktop and mobile
-    return 'https://k6iphva0ugo1rocg.public.blob.vercel-storage.com/manthan/videos/p2_hq.mp4';
+    // We now use a single high-quality intro video hosted on our Backblaze B2 bucket via Cloudflare CDN
+    return 'https://manthan-cdn.ameyabhagat24.workers.dev/p2.mp4';
 }
 
 export default function VideoIntro({ onComplete }: VideoIntroProps) {
     const [isVisible, setIsVisible] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
+    const [isPortrait, setIsPortrait] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     // Resolve source once on mount (not via state to avoid extra render)
     const videoSrc = useRef(getVideoSrc()).current;
+
+    // Detect portrait orientation for responsive video sizing
+    useEffect(() => {
+        const mql = window.matchMedia('(orientation: portrait)');
+        setIsPortrait(mql.matches);
+        const handler = (e: MediaQueryListEvent) => setIsPortrait(e.matches);
+        mql.addEventListener('change', handler);
+        return () => mql.removeEventListener('change', handler);
+    }, []);
 
     const handleVideoEnd = useCallback(() => {
         setIsVisible(false);
@@ -68,16 +78,22 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                         playsInline
                         autoPlay
                         preload="auto"
+                        // @ts-expect-error - fetchPriority is valid in modern browsers but not yet in React types
+                        fetchPriority="high"
                         poster="/intro-poster.jpg"
                         src={videoSrc}
                         onTimeUpdate={handleTimeUpdate}
                         onEnded={handleVideoEnd}
-                        className="absolute top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover"
+                        className="absolute top-1/2 left-1/2 w-auto h-auto"
                         style={{
-                            height: '110svh',
-                            width: '110vw',
-                            objectFit: 'cover',
-                            transform: 'translate(-50%, -50%) scale(1.4)'
+                            height: isPortrait ? 'auto' : '100svh',
+                            width: isPortrait ? '100vw' : '100vw',
+                            minWidth: isPortrait ? '100%' : '100%',
+                            minHeight: isPortrait ? 'auto' : '100%',
+                            objectFit: isPortrait ? 'contain' : 'cover',
+                            transform: isPortrait
+                                ? 'translate(-50%, -50%)'
+                                : 'translate(-50%, -50%) scale(1.05)'
                         }}
                     />
 

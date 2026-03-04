@@ -18,6 +18,13 @@ export default function RootLayout({
         <html lang="en">
             <head>
                 <link rel="icon" href="/manthan_final_logo.png" />
+                {/* Preload the intro video aggressively so it starts downloading before React even boots */}
+                <link
+                    rel="preload"
+                    href="https://manthan-cdn.ameyabhagat24.workers.dev/p2.mp4"
+                    as="video"
+                    type="video/mp4"
+                />
             </head>
             <body className="min-h-screen text-gray-200 antialiased overflow-x-hidden">
                 <ClientLayout>
