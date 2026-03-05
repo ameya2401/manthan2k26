@@ -25,21 +25,41 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const backgroundPlayedRef = useRef(false);
     const startTimeRef = useRef<number | null>(null);
 
-    const bgVideoSrc = 'https://manthan-cdn.ameyabhagat24.workers.dev/extended.mp4';
+    const bgVideoSrc = '/bg_best_vid.mp4';
 
-    // No early fade — video plays fully before fading
-    const handleTimeUpdate = () => { };
+    // Sync timing and handle manual loop fading
+    const handleTimeUpdate = () => {
+        const video = videoRef.current;
+        if (video) {
+            const loopPoint = 5.0; // User requested 5s duration
+            const fadePoint = 1.0; // 1s fade in/out
+
+            // Fade out starts at loopPoint - fadePoint
+            if (video.currentTime >= loopPoint - fadePoint && video.currentTime < loopPoint) {
+                if (!isLoopFading) setIsLoopFading(true);
+            }
+
+            // Force reset if it exceeds 5s
+            if (video.currentTime >= loopPoint) {
+                video.currentTime = 0;
+                video.play().catch(() => { });
+                setIsLoopFading(false);
+            }
+
+            // Normal operation outside fade zone
+            if (video.currentTime < loopPoint - fadePoint && video.currentTime > fadePoint) {
+                if (isLoopFading) setIsLoopFading(false);
+            }
+        }
+    };
 
     const handleVideoLoop = () => {
-        // Video ended — quick fade out, restart during fade, then fade back in
-        setIsLoopFading(true);
-        setTimeout(() => {
-            if (videoRef.current) {
-                videoRef.current.currentTime = 0;
-                videoRef.current.play().catch(() => { });
-            }
-            setTimeout(() => setIsLoopFading(false), 300);
-        }, 800);
+        if (videoRef.current) {
+            const video = videoRef.current;
+            video.currentTime = 0;
+            video.play().catch(() => { });
+            setIsLoopFading(false);
+        }
     };
 
     useEffect(() => {
@@ -47,15 +67,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         const syncVideo = () => {
             if (document.visibilityState === 'visible' && startTimeRef.current && videoRef.current) {
                 const video = videoRef.current;
-                if (video.duration) {
-                    const totalElapsed = (Date.now() - startTimeRef.current) / 1000;
-                    // For looping, we use the remainder (modulo) of the duration
-                    const seekTime = totalElapsed % video.duration;
+                const totalElapsed = (Date.now() - startTimeRef.current) / 1000;
+                const seekTime = totalElapsed % 5.0; // Loop every 5s
 
-                    if (Math.abs(video.currentTime - seekTime) > 0.5) {
-                        video.currentTime = seekTime;
-                        video.play().catch(() => { });
-                    }
+                if (Math.abs(video.currentTime - seekTime) > 0.5) {
+                    video.currentTime = seekTime;
+                    video.play().catch(() => { });
                 }
             }
         };
@@ -65,33 +82,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }, []);
 
     useEffect(() => {
-        if ((introComplete || !isLandingPage) && videoRef.current) {
+        if ((introComplete || !isLandingPage) && videoRef.current && !backgroundPlayedRef.current) {
             const video = videoRef.current;
-
-            // Check if source needs updating (e.g. URL change or initial state)
-            if (!video.src || video.src !== bgVideoSrc) {
+            // Lazy-load: set source only when needed
+            if (!video.src || video.src === '') {
                 video.src = bgVideoSrc;
                 video.load();
-                backgroundPlayedRef.current = false;
             }
-
-            if (backgroundPlayedRef.current) return;
-
             const onCanPlay = () => {
                 setBgVideoReady(true);
                 video.play().then(() => {
                     if (!startTimeRef.current) startTimeRef.current = Date.now();
                 }).catch(() => { });
                 video.removeEventListener('canplay', onCanPlay);
-                backgroundPlayedRef.current = true;
             };
-
-            // If video is already ready to play, trigger manually
-            if (video.readyState >= 3) {
-                onCanPlay();
-            } else {
-                video.addEventListener('canplay', onCanPlay);
-            }
+            video.addEventListener('canplay', onCanPlay);
+            backgroundPlayedRef.current = true;
         }
     }, [introComplete, isLandingPage, bgVideoSrc]);
 
@@ -120,7 +126,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 tabIndex={-1}
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleVideoLoop}
-                className={`fixed top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover transition-opacity duration-[1500ms] ease-in-out ${(introComplete || !isLandingPage) && !isLoopFading && bgVideoReady ? 'opacity-30' : 'opacity-0'
+                className={`fixed top-1/2 left-1/2 min-w-[110%] min-h-[110%] w-auto h-auto object-cover transition-all duration-[1000ms] ease-in-out ${(introComplete || !isLandingPage) && !isLoopFading && bgVideoReady ? 'opacity-40' : 'opacity-0'
                     } pointer-events-none bg-black`}
                 style={{
                     height: '110svh',
@@ -130,6 +136,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     transform: 'translate(-50%, -50%) scale(1.4)'
                 }}
             />
+
             {/* Source is set dynamically via JS for lazy loading */}
 
             <motion.div
@@ -138,6 +145,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 className={(isLandingPage && !introComplete) ? "fixed inset-0 pointer-events-none overflow-hidden bg-transparent" : "relative min-h-screen bg-transparent"}
             >
+                {/* Home Page Specific Background Override */}
+                {isLandingPage && (
+                    <style jsx global>{`
+                        body::before {
+                            display: none !important;
+                        }
+                    `}</style>
+                )}
                 {children}
 
                 {/* Chatbot - Only show after intro or on subpages */}

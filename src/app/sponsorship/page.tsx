@@ -3,6 +3,7 @@
 import Navbar from '@/components/Navbar';
 import Image from 'next/image';
 import Footer from '@/components/Footer';
+import ScrollWrapper from '@/components/ScrollWrapper';
 import { motion } from 'framer-motion';
 import { Trophy, Star, ShieldCheck, Zap, Heart } from 'lucide-react';
 
@@ -74,20 +75,14 @@ export default function SponsorshipPage() {
                     </div>
 
                     {/* Sponsorship Tiers */}
-                    <div className="space-y-24">
+                    <div className="space-y-16">
                         {sponsors.map((tier) => (
-                            <motion.section
-                                key={tier.tier}
-                                initial={{ opacity: 0, y: 40 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-100px" }}
-                                transition={{ duration: 0.6 }}
-                            >
-                                <div className="flex items-center gap-4 mb-10 pb-4 border-b border-manthan-gold/10">
-                                    <div className="w-12 h-12 rounded-full bg-manthan-gold/10 flex items-center justify-center text-manthan-gold">
+                            <ScrollWrapper key={tier.tier} padding="p-8 md:p-12">
+                                <div className="flex items-center gap-4 mb-10 pb-4 border-b border-[#3d2b1f]/10">
+                                    <div className="w-12 h-12 rounded-full bg-manthan-maroon/10 flex items-center justify-center text-manthan-maroon">
                                         <tier.icon size={24} />
                                     </div>
-                                    <h2 className="text-2xl md:text-3xl font-bold text-gray-200 tracking-tight uppercase">
+                                    <h2 className="font-ancient text-2xl md:text-3xl font-bold text-[#3d2b1f] tracking-tight uppercase">
                                         {tier.tier}
                                     </h2>
                                 </div>
@@ -99,11 +94,8 @@ export default function SponsorshipPage() {
                                     {tier.items.map((sponsor) => (
                                         <div
                                             key={sponsor.id}
-                                            className="group relative h-40 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-center p-8 hover:border-manthan-gold/30 hover:bg-manthan-gold/[0.03] transition-all duration-500 overflow-hidden"
+                                            className="group relative h-40 bg-[#3d2b1f]/5 border border-[#3d2b1f]/10 rounded-2xl flex items-center justify-center p-8 hover:border-manthan-maroon/30 transition-all duration-500 overflow-hidden shadow-sm"
                                         >
-                                            {/* Glow Effect */}
-                                            <div className="absolute inset-0 bg-gradient-to-br from-manthan-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
                                             <Image
                                                 src={sponsor.logo}
                                                 alt={sponsor.name}
@@ -113,39 +105,36 @@ export default function SponsorshipPage() {
                                             />
 
                                             <div className="absolute bottom-4 left-0 right-0 text-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                                                <span className="text-[10px] font-bold text-manthan-gold uppercase tracking-[0.2em]">
+                                                <span className="font-ancient text-[10px] font-bold text-manthan-maroon uppercase tracking-[0.2em]">
                                                     {sponsor.name}
                                                 </span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </motion.section>
+                            </ScrollWrapper>
                         ))}
                     </div>
 
                     {/* CTA Section */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        className="mt-32 p-12 glass-card text-center bg-gradient-to-r from-manthan-maroon/20 to-manthan-dark border-manthan-gold/20"
-                    >
-                        <Heart className="text-manthan-crimson mx-auto mb-6" size={48} />
-                        <h2 className="text-3xl font-bold text-gold-gradient mb-4">Want to partner with us?</h2>
-                        <p className="text-gray-400 max-w-xl mx-auto mb-8">
-                            Join us in making Manthan 2026 the biggest celebration of talent.
-                            Partner with us and gain visibility among thousands of enthusiastic students.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a
-                                href="mailto:manthan@bvimit.co.in"
-                                className="px-8 py-4 bg-manthan-gold text-black font-bold rounded-lg hover:bg-manthan-gold-light transition-all shadow-lg"
-                            >
-                                Contact for Sponsorship
-                            </a>
-                        </div>
-                    </motion.div>
+                    <div className="mt-32">
+                        <ScrollWrapper padding="p-12">
+                            <Heart className="text-manthan-maroon mx-auto mb-6" size={48} />
+                            <h2 className="font-ancient text-3xl font-bold text-[#3d2b1f] mb-4 uppercase">Want to partner with us?</h2>
+                            <p className="text-[#5c4033] max-w-xl mx-auto mb-8 italic">
+                                Join us in making Manthan 2026 the biggest celebration of talent.
+                                Partner with us and gain visibility among thousands of enthusiastic students.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a
+                                    href="mailto:manthan@bvimit.co.in"
+                                    className="px-12 py-4 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-ancient font-bold uppercase tracking-[0.2em] shadow-xl shadow-manthan-maroon/20 hover:scale-105 transition-transform text-center"
+                                >
+                                    Contact for Sponsorship
+                                </a>
+                            </div>
+                        </ScrollWrapper>
+                    </div>
                 </div>
             </main>
 
