@@ -5,7 +5,7 @@ export default function Footer() {
     return (
         <footer className="bg-manthan-black border-t border-manthan-gold/10 pt-20 pb-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-16">
                     {/* Brand & Socials */}
                     <div className="space-y-6 text-center md:text-left">
                         <div>
@@ -46,6 +46,28 @@ export default function Footer() {
                                 { href: '/sponsorship', label: 'Sponsorship' },
                                 { href: '/about', label: 'About Us' },
                                 { href: '/contact', label: 'Contact Us' },
+                            ].map((link) => (
+                                <li key={link.href}>
+                                    <Link
+                                        href={link.href}
+                                        className="text-gray-400 hover:text-manthan-gold text-sm transition-colors duration-300 flex items-center justify-center md:justify-start group"
+                                    >
+                                        <span className="w-0 group-hover:w-2 h-[1px] bg-manthan-gold mr-0 group-hover:mr-2 transition-all duration-300" />
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Policies */}
+                    <div className="text-center md:text-left">
+                        <h4 className="text-manthan-gold font-bold uppercase tracking-widest text-sm mb-6">Policies</h4>
+                        <ul className="space-y-4">
+                            {[
+                                { href: '/privacy-policy', label: 'Privacy Policy' },
+                                { href: '/terms-and-conditions', label: 'Terms & Conditions' },
+                                { href: '/refund-policy', label: 'Refund & Cancellation' },
                             ].map((link) => (
                                 <li key={link.href}>
                                     <Link
