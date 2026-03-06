@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, Phone, MapPin, Globe, Instagram, Youtube, Facebook, Linkedin } from 'lucide-react';
+import { Mail, Phone, MapPin, Globe, Instagram, Facebook, Linkedin } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -19,10 +19,9 @@ export default function Footer() {
 
                         <div className="flex items-center justify-center md:justify-start space-x-4">
                             {[
-                                { icon: Instagram, href: 'https://instagram.com/manthan', color: 'hover:text-pink-500' },
-                                { icon: Youtube, href: 'https://youtube.com/manthan', color: 'hover:text-red-500' },
-                                { icon: Facebook, href: 'https://facebook.com/manthan', color: 'hover:text-blue-500' },
-                                { icon: Linkedin, href: 'https://linkedin.com/manthan', color: 'hover:text-blue-400' },
+                                { icon: Instagram, href: 'https://www.instagram.com/bharatividyapeeths_imit_mca/', color: 'hover:text-pink-500' },
+                                { icon: Facebook, href: 'https://www.facebook.com/bvimit/', color: 'hover:text-blue-500' },
+                                { icon: Linkedin, href: 'https://www.linkedin.com/in/bharati-vidyapeeth-institute-of-management-and-information-technology-705802225/', color: 'hover:text-blue-400' },
                             ].map((social, idx) => (
                                 <a
                                     key={idx}
