@@ -9,9 +9,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { Event, RegistrationFormData, TeamMember, TeamRegistration } from '@/lib/types';
 import {
     formatFee,
-    categoryColors,
     categoryIcons,
-    getSportsTrackByName,
 } from '@/lib/constants';
 import {
     ArrowLeft, ArrowRight, Check, CreditCard, AlertTriangle,

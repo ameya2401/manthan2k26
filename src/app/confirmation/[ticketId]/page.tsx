@@ -5,9 +5,9 @@ import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { Registration, Event, TeamRegistration } from '@/lib/types';
+import { Registration, Event } from '@/lib/types';
 import { formatFee, formatDate } from '@/lib/constants';
-import { CheckCircle, Download, Calendar, MapPin, Ticket, User, Mail, Phone, Building, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Download, Calendar, MapPin, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -21,9 +21,6 @@ export default function ConfirmationPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const teamRegistrationMap = new Map(
-        (registration?.team_registrations || []).map((team: TeamRegistration) => [team.event_id, team])
-    );
 
     useEffect(() => {
         async function fetchData() {
