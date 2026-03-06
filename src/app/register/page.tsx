@@ -9,10 +9,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { Event, RegistrationFormData, TeamMember, TeamRegistration } from '@/lib/types';
 import {
     formatFee,
-    categoryColors,
     categoryIcons,
-    sportsCommitteeStructure,
-    getSportsTrackByName,
 } from '@/lib/constants';
 import {
     ArrowLeft, ArrowRight, Check, CreditCard, AlertTriangle,
@@ -175,15 +172,12 @@ function RegisterForm() {
 
     // Toggle event selection
     const toggleEvent = useCallback((id: string) => {
-        console.log('Toggling event ID:', id);
         setSelectedIds((prev) => {
             if (prev.includes(id)) {
                 return prev.filter((i) => i !== id);
             }
-            // Optional: Limit total events or check for conflicts
             return [...prev, id];
         });
-        // Clear global event error if selecting something
         setErrors(errs => ({ ...errs, events: '' }));
     }, []);
 
@@ -321,35 +315,20 @@ function RegisterForm() {
 
     // Navigate steps
     const goNext = () => {
-        console.log('Attempting to go to next step from:', step);
-        if (step === 1 && !validateBasicInfo()) {
-            console.log('Basic info validation failed');
-            return;
-        }
-        if (step === 2 && !validateEvents()) {
-            console.log('Events validation failed');
-            return;
-        }
+        if (step === 1 && !validateBasicInfo()) return;
+        if (step === 2 && !validateEvents()) return;
         setDirection(1);
-        setStep((s) => {
-            const next = Math.min(s + 1, 3);
-            console.log('Moving to step:', next);
-            return next;
-        });
+        setStep((s) => Math.min(s + 1, 3));
     };
 
     const goBack = () => {
-        console.log('Going back from step:', step);
         setDirection(-1);
         setStep((s) => Math.max(s - 1, 1));
     };
 
     // Handle payment
     const handlePayment = async () => {
-        if (processing) {
-            return;
-        }
-
+        if (processing) return;
         setProcessing(true);
         setPaymentMessage('');
         setPaymentError('');
@@ -550,119 +529,125 @@ function RegisterForm() {
 
             {/* Form Content */}
             <div className="flex-1 flex flex-col items-center justify-start px-6 py-8 sm:py-12 overflow-y-auto">
-                <div className="w-full max-w-2xl">
-                    <AnimatePresence mode="wait" custom={direction}>
-                        {step === 1 && (
-                            <motion.div
-                                key="basic-info"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                <div className="w-full max-w-2xl overflow-visible">
+                    <div className="parchment-container rounded-none parchment-theme">
+                        <div className="scroll-roll" />
+                        <div className="parchment-body p-6 sm:p-10 shrink-0">
+                            <AnimatePresence mode="wait" custom={direction}>
+                                {step === 1 && (
+                                    <motion.div
+                                        key="basic-info"
+                                        custom={direction}
+                                        variants={slideVariants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                                    >
+                                        <BasicInfoStep
+                                            formData={formData}
+                                            setFormData={setFormData}
+                                            errors={errors}
+                                            focusedField={focusedField}
+                                            setFocusedField={setFocusedField}
+                                            onNext={goNext}
+                                        />
+                                    </motion.div>
+                                )}
+
+                                {step === 2 && (
+                                    <motion.div
+                                        key="events"
+                                        custom={direction}
+                                        variants={slideVariants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                                    >
+                                        <EventSelectionStep
+                                            events={events}
+                                            selectedIds={selectedIds}
+                                            toggleEvent={toggleEvent}
+                                            error={errors.events}
+                                            previewTotal={previewTotal}
+                                            teamRegistrations={teamRegistrations}
+                                            updateTeamRegistration={updateTeamRegistration}
+                                        />
+                                    </motion.div>
+                                )}
+
+                                {step === 3 && (
+                                    <motion.div
+                                        key="payment"
+                                        custom={direction}
+                                        variants={slideVariants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                                    >
+                                        <PaymentStep
+                                            formData={formData}
+                                            selectedEvents={selectedEvents}
+                                            previewTotal={previewTotal}
+                                            teamRegistrations={teamRegistrations}
+                                            razorpayReady={razorpayReady}
+                                            paymentMessage={paymentMessage}
+                                            paymentError={paymentError}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                        <div className="scroll-roll rotate-180" />
+                    </div>
+
+                    {/* Bottom Navigation */}
+                    <div className="px-6 py-8">
+                        <div className="max-w-2xl mx-auto flex items-center justify-between">
+                            <button
+                                onClick={goBack}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-ancient transition-all ${step === 1
+                                    ? 'text-gray-700 cursor-not-allowed'
+                                    : 'text-manthan-gold hover:text-manthan-gold/80 hover:bg-white/5'
+                                    }`}
+                                disabled={step === 1}
                             >
-                                <BasicInfoStep
-                                    formData={formData}
-                                    setFormData={setFormData}
-                                    errors={errors}
-                                    focusedField={focusedField}
-                                    setFocusedField={setFocusedField}
-                                    onNext={goNext}
-                                />
-                            </motion.div>
-                        )}
+                                <ArrowLeft size={16} />
+                                Back
+                            </button>
 
-                        {step === 2 && (
-                            <motion.div
-                                key="events"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                            >
-                                <EventSelectionStep
-                                    events={events}
-                                    selectedIds={selectedIds}
-                                    toggleEvent={toggleEvent}
-                                    error={errors.events}
-                                    previewTotal={previewTotal}
-                                    teamRegistrations={teamRegistrations}
-                                    updateTeamRegistration={updateTeamRegistration}
-                                />
-                            </motion.div>
-                        )}
-
-                        {step === 3 && (
-                            <motion.div
-                                key="payment"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                            >
-                                <PaymentStep
-                                    formData={formData}
-                                    selectedEvents={selectedEvents}
-                                    previewTotal={previewTotal}
-                                    teamRegistrations={teamRegistrations}
-                                    razorpayReady={razorpayReady}
-                                    paymentMessage={paymentMessage}
-                                    paymentError={paymentError}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </div>
-
-            {/* Bottom Navigation */}
-            <div className="border-t border-white/5 px-6 py-4">
-                <div className="max-w-2xl mx-auto flex items-center justify-between">
-                    <button
-                        onClick={goBack}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${step === 1
-                            ? 'text-gray-700 cursor-not-allowed'
-                            : 'text-gray-400 hover:text-manthan-gold hover:bg-white/5'
-                            }`}
-                        disabled={step === 1}
-                    >
-                        <ArrowLeft size={16} />
-                        Back
-                    </button>
-
-                    {step < 3 ? (
-                        <button
-                            onClick={goNext}
-                            className="flex items-center gap-2 px-8 py-3 bg-manthan-gold text-manthan-black font-bold rounded-full text-sm hover:bg-manthan-gold-light transition-all shadow-xl shadow-manthan-gold/20 active:scale-95 group"
-                        >
-                            Continue
-                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handlePayment}
-                            disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-full text-sm hover:from-manthan-crimson hover:to-manthan-maroon transition-all shadow-xl shadow-manthan-maroon/40 active:scale-95 disabled:opacity-50 group"
-                        >
-                            {processing ? (
-                                <>
-                                    <LoadingSpinner />
-                                    Processing...
-                                </>
+                            {step < 3 ? (
+                                <button
+                                    onClick={goNext}
+                                    className="flex items-center gap-2 px-8 py-3 bg-manthan-gold text-manthan-black font-bold rounded-full text-sm hover:bg-manthan-gold-light transition-all shadow-xl shadow-manthan-gold/20 active:scale-95 group font-ancient uppercase tracking-widest"
+                                >
+                                    Continue
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
                             ) : (
-                                <>
-                                    <CreditCard size={18} />
-                                    Pay {formatFee(previewTotal)}
-                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform ml-1" />
-                                </>
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={processing}
+                                    className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-full text-sm hover:from-manthan-crimson hover:to-manthan-maroon transition-all shadow-xl shadow-manthan-maroon/40 active:scale-95 disabled:opacity-50 group font-ancient uppercase tracking-widest"
+                                >
+                                    {processing ? (
+                                        <>
+                                            <LoadingSpinner />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CreditCard size={18} />
+                                            Pay {formatFee(previewTotal)}
+                                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform ml-1" />
+                                        </>
+                                    )}
+                                </button>
                             )}
-                        </button>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -701,7 +686,7 @@ function BasicInfoStep({
             const arr = Array.from(inputs);
             const idx = arr.indexOf(current as HTMLInputElement | HTMLSelectElement);
             if (idx >= 0 && idx < arr.length - 1) {
-                arr[idx + 1].focus();
+                (arr[idx + 1] as HTMLElement).focus();
             } else {
                 onNext();
             }
@@ -710,21 +695,21 @@ function BasicInfoStep({
 
     return (
         <div>
-            <div className="mb-10 text-center sm:text-left">
+            <div className="mb-10 text-center sm:text-left border-b border-manthan-maroon/10 pb-6">
                 <motion.h2
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="font-heading text-3xl sm:text-4xl font-bold text-gold-gradient mb-3"
+                    className="font-ancient text-3xl sm:text-4xl font-bold text-[#3d2b1f] mb-3"
                 >
-                    Tell us about yourself
+                    Personal Scroll
                 </motion.h2>
                 <motion.p
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="text-gray-400 text-sm sm:text-base"
+                    className="text-[#5c4033] text-sm sm:text-base italic"
                 >
-                    Fill in your details to register for Manthan 2026
+                    Record your identity for the archives of Manthan
                 </motion.p>
             </div>
 
@@ -744,7 +729,7 @@ function BasicInfoStep({
                         onBlur={() => setFocusedField(null)}
                         onKeyDown={handleKeyDown}
                         placeholder="Enter your full name"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
+                        className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none font-ancient"
                         autoFocus
                     />
                 </FormField>
@@ -764,7 +749,7 @@ function BasicInfoStep({
                         onBlur={() => setFocusedField(null)}
                         onKeyDown={handleKeyDown}
                         placeholder="your@email.com"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
+                        className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none font-ancient"
                     />
                 </FormField>
 
@@ -784,7 +769,7 @@ function BasicInfoStep({
                         onKeyDown={handleKeyDown}
                         placeholder="10-digit mobile number"
                         maxLength={10}
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
+                        className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none font-ancient"
                     />
                 </FormField>
 
@@ -803,7 +788,7 @@ function BasicInfoStep({
                         onBlur={() => setFocusedField(null)}
                         onKeyDown={handleKeyDown}
                         placeholder="Enter your college name"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
+                        className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none font-ancient"
                     />
                 </FormField>
 
@@ -820,11 +805,11 @@ function BasicInfoStep({
                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                             onFocus={() => setFocusedField('year')}
                             onBlur={() => setFocusedField(null)}
-                            className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none appearance-none"
+                            className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none appearance-none font-ancient"
                         >
-                            <option value="" className="bg-manthan-black">Select Year</option>
+                            <option value="" className="bg-[#f4e4bc]">Select Year</option>
                             {yearOptions.map((y) => (
-                                <option key={y} value={y} className="bg-manthan-black">{y}</option>
+                                <option key={y} value={y} className="bg-[#f4e4bc]">{y}</option>
                             ))}
                         </select>
                     </FormField>
@@ -844,14 +829,14 @@ function BasicInfoStep({
                             onBlur={() => setFocusedField(null)}
                             onKeyDown={handleKeyDown}
                             placeholder="e.g., Computer Science"
-                            className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
+                            className="w-full bg-transparent px-4 py-4 text-sm text-[#2c1e0f] placeholder:text-[#3d2b1f]/40 focus:outline-none font-ancient"
                         />
                     </FormField>
                 </div>
             </div>
 
-            <p className="mt-6 text-gray-600 text-xs text-center">
-                Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-gray-500 text-[10px] font-mono">Enter ↵</kbd> to move between fields
+            <p className="mt-8 text-manthan-maroon/40 text-[10px] text-center font-ancient tracking-widest uppercase">
+                Press <kbd className="px-1.5 py-0.5 bg-black/5 rounded text-manthan-maroon/60 font-mono italic">Enter ↵</kbd> to move between fields
             </p>
         </div>
     );
@@ -875,21 +860,21 @@ function FormField({
 }) {
     return (
         <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase">
+            <label className="block text-[10px] font-bold text-manthan-maroon/60 mb-1.5 tracking-[0.2em] uppercase font-ancient">
                 {label}
             </label>
             <div
                 className={`relative flex items-center rounded-xl border transition-all duration-300 ${error
-                    ? 'border-manthan-crimson/50 bg-manthan-crimson/10 shadow-[0_0_15px_rgba(220,20,60,0.1)]'
+                    ? 'border-manthan-crimson/50 bg-transparent'
                     : focused
-                        ? 'border-manthan-gold/60 bg-manthan-gold/10 shadow-[0_0_20px_rgba(212,168,55,0.15)]'
-                        : 'border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]'
+                        ? 'border-manthan-maroon/40 bg-transparent'
+                        : 'border-manthan-maroon/20 bg-transparent hover:border-manthan-maroon/40'
                     }`}
             >
-                <div className={`pl-4 flex items-center justify-center transition-colors duration-300 ${focused ? 'text-manthan-gold' : 'text-gray-500'
+                <div className={`pl-4 flex items-center justify-center transition-colors duration-300 ${focused ? 'text-manthan-maroon' : 'text-manthan-maroon/40'
                     }`}>
                     {icon}
-                    <div className="w-px h-6 bg-white/10 ml-4" />
+                    <div className="w-px h-6 bg-manthan-maroon/10 ml-4" />
                 </div>
                 {children}
             </div>
@@ -897,7 +882,7 @@ function FormField({
                 <motion.p
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-manthan-crimson text-xs mt-1.5 pl-1"
+                    className="text-manthan-crimson text-xs mt-1.5 pl-1 font-ancient italic"
                 >
                     {error}
                 </motion.p>
@@ -927,10 +912,6 @@ function EventSelectionStep({
     updateTeamRegistration: (eventId: string, updater: (current: TeamRegistration) => TeamRegistration) => void;
 }) {
     const categories = ['technical', 'cultural', 'sports'] as const;
-    const sportsTrackTitles: Record<'indoor' | 'outdoor', string> = {
-        outdoor: 'Outdoor Sports',
-        indoor: 'Indoor Sports',
-    };
 
     const renderEventCard = (event: Event) => {
         const isSelected = selectedIds.includes(event.id);
@@ -948,53 +929,57 @@ function EventSelectionStep({
                 key={event.id}
                 onClick={() => toggleEvent(event.id)}
                 whileTap={{ scale: 0.98 }}
-                className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 ${isSelected
-                    ? 'border-manthan-gold/60 bg-manthan-gold/10 shadow-[0_0_20px_rgba(212,168,55,0.1)]'
-                    : 'border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]'
+                className={`w-full text-left parchment-card border transition-all duration-300 ${isSelected
+                    ? 'border-manthan-maroon shadow-[0_0_20px_rgba(139,0,0,0.1)]'
+                    : 'border-manthan-maroon/10 hover:border-manthan-maroon/30 shadow-sm'
                     }`}
             >
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                        <h4 className={`font-semibold text-sm mb-1 ${isSelected ? 'text-manthan-gold' : 'text-gray-200'
-                            }`}>
-                            {event.name}
-                        </h4>
-                        <p className="text-gray-500 text-xs line-clamp-1 mb-2">
-                            {event.description}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-600">
-                            <span>{teamLabel}</span>
-                            <span>·</span>
-                            <span>{event.venue}</span>
+                <div className="scroll-roll h-2 opacity-30" />
+                <div className="parchment-body p-4">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                            <h4 className={`font-ancient font-bold text-sm mb-1 ${isSelected ? 'text-manthan-maroon' : 'text-[#3d2b1f]'
+                                }`}>
+                                {event.name}
+                            </h4>
+                            <p className="text-[#5c4033] text-[10px] line-clamp-1 mb-2 italic">
+                                {event.description}
+                            </p>
+                            <div className="flex items-center gap-3 text-[10px] text-[#5c4033]/60 font-ancient uppercase tracking-wider">
+                                <span>{teamLabel}</span>
+                                <span>·</span>
+                                <span>{event.venue}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                        <span className={`text-sm font-bold ${isSelected ? 'text-manthan-gold' : 'text-gray-400'
-                            }`}>
-                            {amountLabel}
-                        </span>
-                        <div
-                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected
-                                ? 'bg-manthan-gold border-manthan-gold'
-                                : 'border-gray-600'
-                                }`}
-                        >
-                            {isSelected && <Check size={12} className="text-manthan-black" />}
+                        <div className="flex flex-col items-end gap-2">
+                            <span className={`text-xs font-bold font-ancient ${isSelected ? 'text-manthan-maroon' : 'text-[#3d2b1f]'
+                                }`}>
+                                {amountLabel}
+                            </span>
+                            <div
+                                className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isSelected
+                                    ? 'bg-manthan-maroon border-manthan-maroon'
+                                    : 'border-manthan-maroon/20'
+                                    }`}
+                            >
+                                {isSelected && <Check size={12} className="text-white" />}
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div className="scroll-roll h-2 opacity-30 rotate-180" />
             </motion.button>
         );
     };
 
     return (
         <div>
-            <div className="mb-8">
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-gold-gradient mb-2">
-                    Choose your events
+            <div className="mb-10 text-center sm:text-left border-b border-manthan-maroon/10 pb-6">
+                <h2 className="font-ancient text-3xl sm:text-4xl font-bold text-[#3d2b1f] mb-3">
+                    Ancient Challenges
                 </h2>
-                <p className="text-gray-500 text-sm">
-                    Select the events you&apos;d like to participate in
+                <p className="text-[#5c4033] text-sm italic">
+                    Select the trial(s) you wish to undertake
                 </p>
             </div>
 
@@ -1002,97 +987,23 @@ function EventSelectionStep({
                 <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-3 rounded-lg bg-manthan-crimson/10 border border-manthan-crimson/20 text-manthan-crimson text-sm"
+                    className="mb-6 p-4 rounded-lg bg-manthan-crimson/5 border border-manthan-crimson/20 text-manthan-crimson text-xs font-ancient italic"
                 >
                     {error}
                 </motion.div>
             )}
 
-            {events.length === 0 && (
-                <div className="mb-8 rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-                    <h3 className="text-sm font-semibold text-manthan-gold mb-4">Sports Committee Structure</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Outdoor Sports</p>
-                            <ul className="space-y-1.5">
-                                {sportsCommitteeStructure.outdoor.map((sport) => (
-                                    <li key={sport} className="text-sm text-gray-300">• {sport}</li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Indoor Sports</p>
-                            <ul className="space-y-1.5">
-                                {sportsCommitteeStructure.indoor.map((sport) => (
-                                    <li key={sport} className="text-sm text-gray-300">• {sport}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-4">
-                        No active events are published yet. We can now add these sports one by one.
-                    </p>
-                </div>
-            )}
-
-            <div className="space-y-8">
+            <div className="space-y-12">
                 {categories.map((cat) => {
                     const catEvents = events.filter((e) => e.category === cat);
                     if (catEvents.length === 0) return null;
-                    const colors = categoryColors[cat];
-
-                    if (cat === 'sports') {
-                        const outdoorEvents = catEvents.filter((event) => getSportsTrackByName(event.name) === 'outdoor');
-                        const indoorEvents = catEvents.filter((event) => getSportsTrackByName(event.name) === 'indoor');
-                        const otherSportsEvents = catEvents.filter((event) => !getSportsTrackByName(event.name));
-
-                        const groupedSports: Array<{ track: 'outdoor' | 'indoor'; list: Event[] }> = [
-                            { track: 'outdoor', list: outdoorEvents },
-                            { track: 'indoor', list: indoorEvents },
-                        ];
-
-                        return (
-                            <div key={cat}>
-                                <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${colors.text}`}>
-                                    {categoryIcons[cat]} {cat}
-                                </h3>
-
-                                <div className="space-y-5">
-                                    {groupedSports.map(({ track, list }) => {
-                                        if (list.length === 0) return null;
-                                        return (
-                                            <div key={track}>
-                                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                                                    {sportsTrackTitles[track]}
-                                                </p>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {list.map((event) => renderEventCard(event))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                    {otherSportsEvents.length > 0 && (
-                                        <div>
-                                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                                                More Sports Events
-                                            </p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {otherSportsEvents.map((event) => renderEventCard(event))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    }
 
                     return (
-                        <div key={cat}>
-                            <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${colors.text}`}>
+                        <div key={cat} className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-manthan-maroon/40 border-b border-manthan-maroon/5 pb-2 flex items-center gap-2 font-ancient">
                                 {categoryIcons[cat]} {cat}
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                                 {catEvents.map((event) => renderEventCard(event))}
                             </div>
                         </div>
@@ -1101,7 +1012,8 @@ function EventSelectionStep({
             </div>
 
             {selectedIds.length > 0 && (
-                <div className="mt-8 space-y-4">
+                <div className="mt-12 space-y-6">
+                    {/* Team Details Section */}
                     {events
                         .filter((event) => selectedIds.includes(event.id) && needsTeamDetails(event))
                         .map((event) => {
@@ -1114,18 +1026,18 @@ function EventSelectionStep({
                             return (
                                 <div
                                     key={`${event.id}-team-config`}
-                                    className="p-4 rounded-xl border border-manthan-gold/20 bg-manthan-gold/5"
+                                    className="p-6 rounded-xl border border-manthan-maroon/20 bg-transparent"
                                 >
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-                                        <h4 className="text-manthan-gold font-semibold text-sm">{event.name} · Team Details</h4>
-                                        <span className="text-xs text-gray-500">
-                                            {event.fee_calculation === 'per_participant' ? 'Fee per participant' : 'Fee per team'}
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+                                        <h4 className="text-manthan-maroon font-ancient font-bold uppercase tracking-wider">{event.name} · Team Scroll</h4>
+                                        <span className="text-[10px] text-[#5c4033]/60 italic font-ancient">
+                                            {event.fee_calculation === 'per_participant' ? 'Taxed per individual' : 'Fixed scroll fee'}
                                         </span>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Team Name (optional)</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-manthan-maroon/60 uppercase tracking-widest font-ancient">Name of House</label>
                                             <input
                                                 type="text"
                                                 value={team.team_name || ''}
@@ -1135,105 +1047,85 @@ function EventSelectionStep({
                                                         team_name: e.target.value,
                                                     }))
                                                 }
-                                                className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-manthan-gold/40 focus:outline-none"
+                                                className="w-full rounded-lg border border-manthan-maroon/20 bg-transparent px-4 py-3 text-sm text-[#3d2b1f] placeholder:text-[#5c4033]/50 focus:border-manthan-maroon/50 focus:outline-none font-ancient"
                                                 placeholder="Enter team name"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Team Size</label>
-                                            {isFixed ? (
-                                                <div className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 opacity-60">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-bold text-manthan-maroon/60 uppercase tracking-widest font-ancient">Size of Fellowship</label>
+                                            <div className="flex items-center gap-0 rounded-lg border border-manthan-maroon/20 bg-transparent overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        updateTeamRegistration(event.id, (current) => ({
+                                                            ...current,
+                                                            team_size: current.team_size - 1,
+                                                        }))
+                                                    }
+                                                    disabled={isFixed || team.team_size <= bounds.min}
+                                                    className="px-4 py-2 text-lg font-bold text-manthan-maroon hover:bg-black/5 transition-colors disabled:opacity-20 select-none"
+                                                >
+                                                    −
+                                                </button>
+                                                <span className="flex-1 text-center text-sm font-bold text-[#3d2b1f] py-2 select-none font-ancient">
                                                     {team.team_size}
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-0 rounded-lg border border-white/20 bg-white/[0.04] overflow-hidden">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            updateTeamRegistration(event.id, (current) => ({
-                                                                ...current,
-                                                                team_size: current.team_size - 1,
-                                                            }))
-                                                        }
-                                                        disabled={team.team_size <= bounds.min}
-                                                        className="px-4 py-2 text-lg font-bold text-manthan-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
-                                                    >
-                                                        −
-                                                    </button>
-                                                    <span className="flex-1 text-center text-sm font-semibold text-gray-100 py-2 select-none">
-                                                        {team.team_size}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            updateTeamRegistration(event.id, (current) => ({
-                                                                ...current,
-                                                                team_size: current.team_size + 1,
-                                                            }))
-                                                        }
-                                                        disabled={team.team_size >= bounds.max}
-                                                        className="px-4 py-2 text-lg font-bold text-manthan-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <p className="text-[11px] text-gray-600 mt-1">
-                                                {isFixed
-                                                    ? `Fixed team size: ${bounds.min}`
-                                                    : `${bounds.min} to ${bounds.max} participants`}
-                                            </p>
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        updateTeamRegistration(event.id, (current) => ({
+                                                            ...current,
+                                                            team_size: current.team_size + 1,
+                                                        }))
+                                                    }
+                                                    disabled={isFixed || team.team_size >= bounds.max}
+                                                    className="px-4 py-2 text-lg font-bold text-manthan-maroon hover:bg-black/5 transition-colors disabled:opacity-20 select-none"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
                                     {team.members.length > 0 && (
-                                        <div className="space-y-2">
-                                            <p className="text-xs uppercase tracking-wide text-gray-400">
-                                                Team member names
-                                            </p>
-                                            {team.members.map((member, index) => (
-                                                <div key={`${event.id}-member-${index}`} className="grid grid-cols-1 gap-2">
+                                        <div className="space-y-3">
+                                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-manthan-maroon/40 font-ancient">Names of the Brave</p>
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {team.members.map((member, index) => (
                                                     <input
+                                                        key={`${event.id}-member-${index}`}
                                                         type="text"
                                                         value={member.name}
                                                         onChange={(e) =>
                                                             updateTeamRegistration(event.id, (current) => {
                                                                 const members = [...current.members];
-                                                                members[index] = {
-                                                                    ...members[index],
-                                                                    name: e.target.value,
-                                                                };
+                                                                members[index] = { ...members[index], name: e.target.value };
                                                                 return { ...current, members };
                                                             })
                                                         }
-                                                        placeholder={`Teammate ${index + 1} name`}
-                                                        className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-manthan-gold/40 focus:outline-none"
+                                                        placeholder={`Warrior ${index + 1} name`}
+                                                        className="w-full rounded-lg border border-manthan-maroon/20 bg-transparent px-4 py-3 text-sm text-[#3d2b1f] placeholder:text-[#5c4033]/50 focus:border-manthan-maroon/50 focus:outline-none font-ancient"
                                                     />
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             );
                         })}
-                </div>
-            )}
 
-            {selectedIds.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-8 p-4 rounded-xl border border-manthan-gold/20 bg-manthan-gold/5"
-                >
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">
-                            {selectedIds.length} event{selectedIds.length !== 1 ? 's' : ''} selected
-                        </span>
-                        <span className="text-manthan-gold font-bold text-lg">
-                            {formatFee(previewTotal)}
-                        </span>
+                    {/* Preview Summary */}
+                    <div className="p-6 rounded-xl border border-manthan-maroon/20 bg-manthan-maroon/5 mt-8">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[#5c4033] text-sm font-ancient uppercase tracking-widest">
+                                {selectedIds.length} challenge{selectedIds.length !== 1 ? 's' : ''} accepted
+                            </span>
+                            <span className="text-manthan-maroon font-bold text-xl font-ancient">
+                                {formatFee(previewTotal)}
+                            </span>
+                        </div>
                     </div>
-                </motion.div>
+                </div>
             )}
         </div>
     );
@@ -1260,113 +1152,106 @@ function PaymentStep({
     paymentError: string;
 }) {
     return (
-        <div>
-            <div className="mb-8">
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-gold-gradient mb-2">
-                    Review &amp; Pay
+        <div className="space-y-8">
+            <div className="text-center sm:text-left border-b border-manthan-maroon/10 pb-6">
+                <h2 className="font-ancient text-3xl sm:text-4xl font-bold text-[#3d2b1f] mb-3">
+                    Final Inscription
                 </h2>
-                <p className="text-gray-500 text-sm">
-                    Verify your details and proceed to payment
+                <p className="text-[#5c4033] text-sm italic">
+                    Verify your credentials before sealing the scroll
                 </p>
             </div>
 
             {/* Personal Info */}
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 mb-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
-                    Your Details
-                </h3>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                    <InfoRow label="Name" value={formData.name} />
-                    <InfoRow label="Email" value={formData.email} />
-                    <InfoRow label="Phone" value={formData.phone} />
-                    <InfoRow label="College" value={formData.college} />
-                    <InfoRow label="Year" value={formData.year} />
-                    <InfoRow label="Department" value={formData.department} />
+            <div className="rounded-xl border border-manthan-maroon/20 bg-transparent p-6">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-manthan-maroon/40 mb-6 font-ancient">Your Credentials</h3>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-sm">
+                    <InfoRow label="Herald" value={formData.name} />
+                    <InfoRow label="Codex" value={formData.email} />
+                    <InfoRow label="Signal" value={formData.phone} />
+                    <InfoRow label="Guild" value={formData.college} />
+                    <InfoRow label="Era" value={formData.year} />
+                    <InfoRow label="Circle" value={formData.department} />
                 </div>
             </div>
 
             {/* Events Breakdown */}
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 mb-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
-                    Selected Events
-                </h3>
-                <div className="space-y-3">
+            <div className="rounded-xl border-2 border-manthan-maroon/20 bg-manthan-maroon/5 p-6 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-manthan-maroon/60 mb-6 font-ancient pb-2 border-b border-manthan-maroon/10">Accepted Trials</h3>
+                <div className="space-y-4">
                     {selectedEvents.map((event) => (
-                        <div key={event.id} className="flex items-center justify-between py-2">
+                        <div key={event.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-[#fdf5e6]/60 border-l-4 border-manthan-maroon shadow-sm gap-3 sm:gap-0">
                             <div>
-                                <p className="text-gray-200 text-sm font-medium">{event.name}</p>
-                                <p className="text-gray-600 text-xs">
-                                    {categoryIcons[event.category]} {event.category} · {event.venue}
+                                <p className="text-manthan-maroon text-lg font-bold font-ancient">{event.name}</p>
+                                <p className="text-[#5c4033] text-[11px] font-bold uppercase font-ancient tracking-wider mt-1">
+                                    {event.category} · {event.venue}
                                     {needsTeamDetails(event) && (
                                         <>
-                                            {' · '}
-                                            Team size {teamRegistrations[event.id]?.team_size || getDefaultTeamSize(event)}
+                                            {' · fellowship of '}
+                                            {teamRegistrations[event.id]?.team_size || getDefaultTeamSize(event)}
                                         </>
                                     )}
                                 </p>
                             </div>
-                            <span className="text-manthan-gold font-semibold text-sm">
+                            <span className="text-manthan-maroon font-bold text-xl font-ancient">
                                 {formatFee(estimateEventAmount(event, teamRegistrations[event.id]))}
                             </span>
                         </div>
                     ))}
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-                    <span className="text-gray-300 font-semibold">Total Amount</span>
-                    <span className="text-manthan-gold font-bold text-2xl">
+                <div className="mt-8 pt-6 border-t-2 border-manthan-maroon/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                    <span className="text-[#3d2b1f] text-lg font-bold uppercase tracking-widest font-ancient">Total Offering</span>
+                    <span className="text-manthan-maroon font-bold text-4xl font-ancient">
                         {formatFee(previewTotal)}
                     </span>
                 </div>
             </div>
 
             {/* Security badge */}
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-gold/5 border border-manthan-gold/10 mb-5">
-                <ShieldCheck size={18} className="text-manthan-gold flex-shrink-0" />
-                <p className="text-gray-500 text-xs">
-                    Secure payment via Razorpay. Your registration is confirmed only after successful payment verification.
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-manthan-maroon/5 border border-manthan-maroon/10">
+                <ShieldCheck size={20} className="text-manthan-maroon flex-shrink-0 mt-0.5" />
+                <p className="text-[#5c4033] text-[11px] font-ancient leading-relaxed italic">
+                    Transactions are secured by the Razorpay magic. Your registration shall be inscribed in the permanent archives once the gold has been received.
                 </p>
             </div>
 
             {!razorpayReady && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-crimson/10 border border-manthan-crimson/20 mb-5">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-crimson/5 border border-manthan-crimson/20">
                     <AlertTriangle size={18} className="text-manthan-crimson flex-shrink-0" />
-                    <p className="text-manthan-crimson text-xs">
-                        Payment gateway is loading. Please wait a moment before clicking Pay.
+                    <p className="text-manthan-crimson text-[11px] font-ancient uppercase tracking-wider">
+                        Portal is opening... please wait.
                     </p>
                 </div>
             )}
 
             {paymentMessage && (
                 <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-xl bg-manthan-gold/10 border border-manthan-gold/20 flex items-start gap-3 mb-5"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-5 rounded-xl bg-manthan-maroon/10 border border-manthan-maroon/20 flex items-start gap-3"
                 >
-                    <ShieldCheck size={18} className="text-manthan-gold flex-shrink-0 mt-0.5" />
-                    <p className="text-manthan-gold-light text-sm">{paymentMessage}</p>
+                    <Check size={20} className="text-manthan-maroon flex-shrink-0 mt-0.5" />
+                    <p className="text-manthan-maroon font-ancient text-sm">{paymentMessage}</p>
                 </motion.div>
             )}
 
             {paymentError && (
                 <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-xl bg-red-900/20 border border-red-500/20 flex items-start gap-3 mb-5"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-5 rounded-xl bg-manthan-crimson/10 border border-manthan-crimson/20 flex items-start gap-3"
                 >
-                    <AlertTriangle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-300 text-sm">{paymentError}</p>
+                    <AlertTriangle size={20} className="text-manthan-crimson flex-shrink-0 mt-0.5" />
+                    <p className="text-manthan-crimson font-ancient text-sm">{paymentError}</p>
                 </motion.div>
             )}
         </div>
     );
 }
 
-/* ──────────────────────────────────────────────
-   Shared helpers
-   ────────────────────────────────────────────── */
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
-    <div>
-        <span className="text-gray-600 text-xs block mb-0.5">{label}</span>
-        <span className="text-gray-200 text-sm font-medium">{value || 'N/A'}</span>
+    <div className="space-y-1">
+        <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient block">{label}</span>
+        <span className="text-[#3d2b1f] text-sm font-bold font-ancient truncate block">{value || 'N/A'}</span>
     </div>
 );

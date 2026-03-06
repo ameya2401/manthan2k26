@@ -68,7 +68,6 @@ h3,
 h4,
 .font-ancient {
     font-family: 'Cinzel', serif;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .font-tagline {
@@ -191,6 +190,22 @@ select:-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.04) inset !important;
     box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.04) inset !important;
     transition: background-color 9999s ease-out 0s;
+}
+
+/* Parchment theme autofill override */
+.parchment-theme input:-webkit-autofill,
+.parchment-theme input:-webkit-autofill:hover,
+.parchment-theme input:-webkit-autofill:focus,
+.parchment-theme textarea:-webkit-autofill,
+.parchment-theme textarea:-webkit-autofill:hover,
+.parchment-theme textarea:-webkit-autofill:focus,
+.parchment-theme select:-webkit-autofill,
+.parchment-theme select:-webkit-autofill:hover,
+.parchment-theme select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #2c1e0f !important;
+    caret-color: #2c1e0f !important;
+    -webkit-box-shadow: 0 0 0 1000px #f4e4bc inset !important;
+    box-shadow: 0 0 0 1000px #f4e4bc inset !important;
 }
 
 @layer utilities {
