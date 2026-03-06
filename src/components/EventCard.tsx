@@ -56,7 +56,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
                     open: { height: 'auto', opacity: 1 }
                 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="parchment-body p-6 overflow-hidden"
+                className="parchment-body p-6"
             >
                 {/* Category Badge */}
                 <div className="flex items-center justify-between mb-4">

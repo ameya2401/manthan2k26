@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ScrollWrapper from '@/components/ScrollWrapper';
+import AnimatedButton from '@/components/AnimatedButton';
 import { Event, RegistrationFormData, TeamMember, TeamRegistration } from '@/lib/types';
 import {
     formatFee,
@@ -17,7 +19,7 @@ import {
 import {
     ArrowLeft, ArrowRight, Check, CreditCard, AlertTriangle,
     User, Mail, Phone, Building, GraduationCap, BookOpen,
-    ShieldCheck
+    ShieldCheck, Sparkles
 } from 'lucide-react';
 
 declare global {
@@ -69,7 +71,7 @@ function getDefaultTeamSize(event: Event): number {
 }
 
 function normalizeMembers(members: TeamMember[], expectedCount: number): TeamMember[] {
-    const normalized = members.slice(0, expectedCount);
+    const normalized = (members || []).slice(0, expectedCount);
     while (normalized.length < expectedCount) {
         normalized.push({ name: '' });
     }
@@ -133,14 +135,12 @@ function RegisterForm() {
                 const fetchedEvents = data.events || [];
                 setEvents(fetchedEvents);
 
-                // Resolve pre-selection (slug or ID) to a valid UUID ID
                 if (preselectedEvent) {
                     const event = fetchedEvents.find((e: Event) =>
                         e.slug === preselectedEvent || e.id === preselectedEvent
                     );
                     if (event) {
                         setSelectedIds([event.id]);
-                        console.log('Resolved preselected event:', event.name, event.id);
                     }
                 }
             } catch (err) {
@@ -169,21 +169,20 @@ function RegisterForm() {
         };
         document.body.appendChild(script);
         return () => {
-            document.body.removeChild(script);
+            if (document.body.contains(script)) {
+                document.body.removeChild(script);
+            }
         };
     }, []);
 
     // Toggle event selection
     const toggleEvent = useCallback((id: string) => {
-        console.log('Toggling event ID:', id);
         setSelectedIds((prev) => {
             if (prev.includes(id)) {
                 return prev.filter((i) => i !== id);
             }
-            // Optional: Limit total events or check for conflicts
             return [...prev, id];
         });
-        // Clear global event error if selecting something
         setErrors(errs => ({ ...errs, events: '' }));
     }, []);
 
@@ -246,14 +245,12 @@ function RegisterForm() {
         [events]
     );
 
-    // Calculate total
     const previewTotal = events
         .filter((e) => selectedIds.includes(e.id))
         .reduce((sum, e) => sum + estimateEventAmount(e, teamRegistrations[e.id]), 0);
 
     const selectedEvents = events.filter((e) => selectedIds.includes(e.id));
 
-    // Validate basic info
     const validateBasicInfo = (): boolean => {
         const newErrors: Record<string, string> = {};
         if (!formData.name || formData.name.trim().length < 2)
@@ -272,7 +269,6 @@ function RegisterForm() {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Validate events
     const validateEvents = (): boolean => {
         if (selectedIds.length === 0) {
             setErrors({ events: 'Please select at least one event' });
@@ -280,9 +276,7 @@ function RegisterForm() {
         }
 
         for (const event of selectedEvents) {
-            if (!needsTeamDetails(event)) {
-                continue;
-            }
+            if (!needsTeamDetails(event)) continue;
 
             const team = teamRegistrations[event.id];
             if (!team) {
@@ -293,16 +287,10 @@ function RegisterForm() {
             const bounds = getTeamBounds(event);
             if (team.team_size < bounds.min || team.team_size > bounds.max) {
                 setErrors({
-                    events:
-                        bounds.min === bounds.max
-                            ? `${event.name} requires exactly ${bounds.min} participants`
-                            : `${event.name} team size must be between ${bounds.min} and ${bounds.max}`,
+                    events: bounds.min === bounds.max
+                        ? `${event.name} requires exactly ${bounds.min} participants`
+                        : `${event.name} team size must be between ${bounds.min} and ${bounds.max}`,
                 });
-                return false;
-            }
-
-            if (team.members.length !== Math.max(0, team.team_size)) {
-                setErrors({ events: `${event.name} teammate details are incomplete` });
                 return false;
             }
 
@@ -319,37 +307,35 @@ function RegisterForm() {
         return true;
     };
 
-    // Navigate steps
     const goNext = () => {
-        console.log('Attempting to go to next step from:', step);
-        if (step === 1 && !validateBasicInfo()) {
-            console.log('Basic info validation failed');
-            return;
-        }
-        if (step === 2 && !validateEvents()) {
-            console.log('Events validation failed');
-            return;
-        }
+        if (step === 1 && !validateBasicInfo()) return;
+        if (step === 2 && !validateEvents()) return;
         setDirection(1);
-        setStep((s) => {
-            const next = Math.min(s + 1, 3);
-            console.log('Moving to step:', next);
-            return next;
-        });
+        setStep((s) => Math.min(s + 1, 3));
     };
 
     const goBack = () => {
-        console.log('Going back from step:', step);
         setDirection(-1);
         setStep((s) => Math.max(s - 1, 1));
     };
 
-    // Handle payment
-    const handlePayment = async () => {
-        if (processing) {
-            return;
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const inputs = document.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-form-field]');
+            const current = document.activeElement;
+            const arr = Array.from(inputs);
+            const idx = arr.indexOf(current as HTMLInputElement | HTMLSelectElement);
+            if (idx >= 0 && idx < arr.length - 1) {
+                arr[idx + 1].focus();
+            } else {
+                goNext();
+            }
         }
+    };
 
+    const handlePayment = async () => {
+        if (processing) return;
         setProcessing(true);
         setPaymentMessage('');
         setPaymentError('');
@@ -369,16 +355,14 @@ function RegisterForm() {
             }
 
             const teamPayload = selectedEvents
-                .filter((event) => needsTeamDetails(event))
+                .filter(needsTeamDetails)
                 .map((event) => {
                     const team = teamRegistrations[event.id];
                     return {
                         event_id: event.id,
                         team_name: team.team_name?.trim() || null,
                         team_size: team.team_size,
-                        members: team.members.map((member) => ({
-                            name: member.name,
-                        })),
+                        members: team.members.map((member) => ({ name: member.name })),
                     };
                 });
 
@@ -390,16 +374,12 @@ function RegisterForm() {
 
             const orderResponse = await fetch('/api/payment/create-order', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
             const orderData = await orderResponse.json();
-            if (!orderResponse.ok) {
-                throw new Error(orderData.error || 'Failed to create payment order.');
-            }
+            if (!orderResponse.ok) throw new Error(orderData.error || 'Failed to create payment order.');
 
             const checkout = new window.Razorpay({
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -413,573 +393,188 @@ function RegisterForm() {
                     email: formData.email,
                     contact: formData.phone,
                 },
-                notes: {
-                    college: formData.college,
-                },
-                theme: {
-                    color: '#8B0000',
-                },
-                handler: async (response: {
-                    razorpay_order_id: string;
-                    razorpay_payment_id: string;
-                    razorpay_signature: string;
-                }) => {
+                theme: { color: '#8B0000' },
+                handler: async (response: any) => {
                     setProcessing(true);
-                    setPaymentError('');
-
                     try {
                         const verifyResponse = await fetch('/api/payment/verify', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(response),
                         });
-
                         const verifyData = await verifyResponse.json();
-                        if (!verifyResponse.ok) {
-                            throw new Error(verifyData.error || 'Payment verification failed.');
-                        }
-
-                        setPaymentMessage('Payment verified successfully. Redirecting to your confirmation pass...');
+                        if (!verifyResponse.ok) throw new Error(verifyData.error || 'Verification failed.');
                         router.push(`/confirmation/${verifyData.ticket_id || orderData.ticket_id}`);
-                    } catch (error: unknown) {
-                        setPaymentError(getErrorMessage(error, 'Payment verification failed.'));
+                    } catch (error) {
+                        setPaymentError(getErrorMessage(error, 'Verification failed.'));
                     } finally {
                         setProcessing(false);
                     }
                 },
                 modal: {
                     ondismiss: () => {
-                        setPaymentError('Payment was cancelled. You can try again.');
+                        setPaymentError('Payment was cancelled.');
                         setProcessing(false);
                     },
                 },
             });
 
-            checkout.on('payment.failed', (response: { error?: { description?: string } }) => {
-                setPaymentError(response.error?.description || 'Payment failed. Please try again.');
+            checkout.on('payment.failed', (response: any) => {
+                setPaymentError(response.error?.description || 'Payment failed.');
                 setProcessing(false);
             });
 
             checkout.open();
-            setProcessing(false);
-        } catch (error: unknown) {
-            setPaymentError(getErrorMessage(error, 'Unable to start payment. Please try again.'));
+        } catch (error) {
+            setPaymentError(getErrorMessage(error, 'Unable to start payment.'));
             setProcessing(false);
         }
-    };
-
-    // Animation variants
-    const slideVariants = {
-        enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-        center: { x: 0, opacity: 1 },
-        exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
     };
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-manthan-black">
-                <div className="text-center">
-                    <LoadingSpinner />
-                    <p className="text-gray-500 mt-4 text-sm">Loading events...</p>
-                </div>
+                <LoadingSpinner />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-transparent flex flex-col relative overflow-hidden">
+        <>
             <Navbar />
+            <main className="pt-32 pb-20 px-4 min-h-screen relative">
+                <div className="absolute top-0 right-1/4 w-96 h-96 bg-manthan-gold/5 rounded-full blur-[120px] pointer-events-none" />
+                <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-manthan-maroon/5 rounded-full blur-[120px] pointer-events-none" />
 
-            {/* Background Glows */}
-            <div className="absolute top-0 right-1/4 w-96 h-96 bg-manthan-maroon/10 rounded-full blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-manthan-gold/5 rounded-full blur-[120px] pointer-events-none" />
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <div className="text-center mb-16">
+                        <h1 className="font-ancient text-5xl md:text-6xl royal-header mb-6">Royal Inscription</h1>
+                        <p className="font-serif italic text-manthan-gold/60 text-lg">Inscribe your name in the scrolls of Manthan 2026.</p>
+                    </div>
 
-            {/* Progress Bar Container */}
-            <div className="pt-24 px-6 md:pt-32">
-                <div className="max-w-2xl mx-auto">
-                    {/* Step indicators */}
-                    <div className="flex items-center justify-between mb-2">
-                        {steps.map((s, i) => (
-                            <div key={s.id} className="flex items-center">
-                                <button
-                                    onClick={() => {
-                                        if (s.id < step) {
-                                            setDirection(-1);
-                                            setStep(s.id);
-                                        }
-                                    }}
-                                    className={`flex items-center gap-2 text-xs font-medium transition-all ${step === s.id
-                                        ? 'text-manthan-gold'
-                                        : step > s.id
-                                            ? 'text-manthan-gold/60 cursor-pointer hover:text-manthan-gold'
-                                            : 'text-gray-600 cursor-default'
-                                        }`}
-                                >
-                                    <span
-                                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border transition-all ${step > s.id
-                                            ? 'bg-manthan-gold/20 border-manthan-gold/40 text-manthan-gold'
-                                            : step === s.id
-                                                ? 'bg-manthan-gold border-manthan-gold text-manthan-black'
-                                                : 'bg-transparent border-gray-700 text-gray-600'
-                                            }`}
-                                    >
-                                        {step > s.id ? <Check size={12} /> : s.id}
-                                    </span>
-                                    <span className="hidden sm:inline">{s.label}</span>
-                                </button>
-                                {i < steps.length - 1 && (
-                                    <div className={`w-12 sm:w-24 h-px mx-2 sm:mx-4 transition-colors ${step > s.id ? 'bg-manthan-gold/40' : 'bg-gray-800'
-                                        }`} />
-                                )}
+                    <div className="flex items-center justify-between mb-12 relative max-w-md mx-auto">
+                        <div className="absolute top-1/2 left-0 w-full h-0.5 bg-manthan-gold/10 -translate-y-1/2 z-0" />
+                        {steps.map((s) => (
+                            <div key={s.id} className="relative z-10 flex flex-col items-center">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 border-2 ${step >= s.id ? 'bg-manthan-gold border-manthan-gold text-manthan-black shadow-[0_0_15px_rgba(212,168,55,0.4)]' : 'bg-manthan-black border-manthan-gold/20 text-manthan-gold/40'}`}>
+                                    {step > s.id ? <Check size={18} /> : <span className="font-ancient text-sm">{s.id}</span>}
+                                </div>
+                                <span className={`text-[10px] uppercase tracking-widest mt-3 font-ancient ${step >= s.id ? 'text-manthan-gold' : 'text-gray-600'}`}>{s.label}</span>
                             </div>
                         ))}
                     </div>
-                    {/* Thin progress bar */}
-                    <div className="h-0.5 bg-gray-800/50 rounded-full overflow-hidden mt-4">
-                        <motion.div
-                            className="h-full bg-gradient-to-r from-manthan-gold to-manthan-gold-light"
-                            initial={false}
-                            animate={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
-                            transition={{ duration: 0.4, ease: 'easeOut' }}
-                        />
-                    </div>
-                </div>
-            </div>
 
-            {/* Form Content */}
-            <div className="flex-1 flex flex-col items-center justify-start px-6 py-8 sm:py-12 overflow-y-auto">
-                <div className="w-full max-w-2xl">
-                    <AnimatePresence mode="wait" custom={direction}>
-                        {step === 1 && (
-                            <motion.div
-                                key="basic-info"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                            >
-                                <BasicInfoStep
-                                    formData={formData}
-                                    setFormData={setFormData}
-                                    errors={errors}
-                                    focusedField={focusedField}
-                                    setFocusedField={setFocusedField}
-                                    onNext={goNext}
-                                />
+                    <ScrollWrapper padding="p-8 md:p-14">
+                        <AnimatePresence mode="wait">
+                            <motion.div key={step} initial={{ x: 20 * direction, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20 * direction, opacity: 0 }} transition={{ duration: 0.3 }}>
+                                {step === 1 && <BasicInfoStep formData={formData} setFormData={setFormData} errors={errors} focusedField={focusedField} setFocusedField={setFocusedField} handleKeyDown={handleKeyDown} onNext={goNext} />}
+                                {step === 2 && <EventSelectionStep events={events} selectedIds={selectedIds} toggleEvent={toggleEvent} error={errors.events} previewTotal={previewTotal} teamRegistrations={teamRegistrations} updateTeamRegistration={updateTeamRegistration} />}
+                                {step === 3 && <PaymentStep formData={formData} selectedEvents={selectedEvents} previewTotal={previewTotal} teamRegistrations={teamRegistrations} razorpayReady={razorpayReady} paymentMessage={paymentMessage} paymentError={paymentError} />}
                             </motion.div>
-                        )}
+                        </AnimatePresence>
 
-                        {step === 2 && (
-                            <motion.div
-                                key="events"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                            >
-                                <EventSelectionStep
-                                    events={events}
-                                    selectedIds={selectedIds}
-                                    toggleEvent={toggleEvent}
-                                    error={errors.events}
-                                    previewTotal={previewTotal}
-                                    teamRegistrations={teamRegistrations}
-                                    updateTeamRegistration={updateTeamRegistration}
-                                />
-                            </motion.div>
-                        )}
+                        <div className="flex items-center justify-between mt-12 pt-10 border-t border-manthan-maroon/10">
+                            {step > 1 ? (
+                                <button onClick={goBack} className="flex items-center text-manthan-maroon/60 hover:text-manthan-maroon transition-colors uppercase tracking-widest text-xs font-ancient">
+                                    <ArrowLeft size={16} className="mr-2" /> Back
+                                </button>
+                            ) : <div />}
 
-                        {step === 3 && (
-                            <motion.div
-                                key="payment"
-                                custom={direction}
-                                variants={slideVariants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                            >
-                                <PaymentStep
-                                    formData={formData}
-                                    selectedEvents={selectedEvents}
-                                    previewTotal={previewTotal}
-                                    teamRegistrations={teamRegistrations}
-                                    razorpayReady={razorpayReady}
-                                    paymentMessage={paymentMessage}
-                                    paymentError={paymentError}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </div>
-
-            {/* Bottom Navigation */}
-            <div className="border-t border-white/5 px-6 py-4">
-                <div className="max-w-2xl mx-auto flex items-center justify-between">
-                    <button
-                        onClick={goBack}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${step === 1
-                            ? 'text-gray-700 cursor-not-allowed'
-                            : 'text-gray-400 hover:text-manthan-gold hover:bg-white/5'
-                            }`}
-                        disabled={step === 1}
-                    >
-                        <ArrowLeft size={16} />
-                        Back
-                    </button>
-
-                    {step < 3 ? (
-                        <button
-                            onClick={goNext}
-                            className="flex items-center gap-2 px-8 py-3 bg-manthan-gold text-manthan-black font-bold rounded-full text-sm hover:bg-manthan-gold-light transition-all shadow-xl shadow-manthan-gold/20 active:scale-95 group"
-                        >
-                            Continue
-                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handlePayment}
-                            disabled={processing}
-                            className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-full text-sm hover:from-manthan-crimson hover:to-manthan-maroon transition-all shadow-xl shadow-manthan-maroon/40 active:scale-95 disabled:opacity-50 group"
-                        >
-                            {processing ? (
-                                <>
-                                    <LoadingSpinner />
-                                    Processing...
-                                </>
+                            {step < 3 ? (
+                                <AnimatedButton icon={ArrowRight} onClick={goNext}>Continue Inscription</AnimatedButton>
                             ) : (
-                                <>
-                                    <CreditCard size={18} />
-                                    Pay {formatFee(previewTotal)}
-                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform ml-1" />
-                                </>
+                                <AnimatedButton icon={CreditCard} onClick={handlePayment} className={processing ? 'opacity-50' : ''}>
+                                    {processing ? 'Sealing...' : `Seal with ${formatFee(previewTotal)}`}
+                                </AnimatedButton>
                             )}
-                        </button>
-                    )}
+                        </div>
+                    </ScrollWrapper>
                 </div>
-            </div>
-
-            <div className="mt-auto">
-                <Footer />
-            </div>
-        </div>
+            </main>
+            <Footer />
+        </>
     );
 }
 
-/* ──────────────────────────────────────────────
-   Step 1 — Basic Info (Youform style)
-   ────────────────────────────────────────────── */
-function BasicInfoStep({
-    formData,
-    setFormData,
-    errors,
-    focusedField,
-    setFocusedField,
-    onNext,
-}: {
-    formData: RegistrationFormData;
-    setFormData: (data: RegistrationFormData) => void;
-    errors: Record<string, string>;
-    focusedField: string | null;
-    setFocusedField: (field: string | null) => void;
-    onNext: () => void;
-}) {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const inputs = document.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-                '[data-form-field]'
-            );
-            const current = document.activeElement;
-            const arr = Array.from(inputs);
-            const idx = arr.indexOf(current as HTMLInputElement | HTMLSelectElement);
-            if (idx >= 0 && idx < arr.length - 1) {
-                arr[idx + 1].focus();
-            } else {
-                onNext();
-            }
-        }
-    };
-
+function FormField({ icon, label, error, focused, children }: { icon: any; label: string; error?: string; focused: boolean; children: any }) {
     return (
         <div>
-            <div className="mb-10 text-center sm:text-left">
-                <motion.h2
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="font-heading text-3xl sm:text-4xl font-bold text-gold-gradient mb-3"
-                >
-                    Tell us about yourself
-                </motion.h2>
-                <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-gray-400 text-sm sm:text-base"
-                >
-                    Fill in your details to register for Manthan 2026
-                </motion.p>
-            </div>
-
-            <div className="space-y-5">
-                <FormField
-                    icon={<User size={18} />}
-                    label="Full Name"
-                    error={errors.name}
-                    focused={focusedField === 'name'}
-                >
-                    <input
-                        data-form-field
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        onFocus={() => setFocusedField('name')}
-                        onBlur={() => setFocusedField(null)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter your full name"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
-                        autoFocus
-                    />
-                </FormField>
-
-                <FormField
-                    icon={<Mail size={18} />}
-                    label="Email Address"
-                    error={errors.email}
-                    focused={focusedField === 'email'}
-                >
-                    <input
-                        data-form-field
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        onFocus={() => setFocusedField('email')}
-                        onBlur={() => setFocusedField(null)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="your@email.com"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
-                    />
-                </FormField>
-
-                <FormField
-                    icon={<Phone size={18} />}
-                    label="Phone Number"
-                    error={errors.phone}
-                    focused={focusedField === 'phone'}
-                >
-                    <input
-                        data-form-field
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        onFocus={() => setFocusedField('phone')}
-                        onBlur={() => setFocusedField(null)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="10-digit mobile number"
-                        maxLength={10}
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
-                    />
-                </FormField>
-
-                <FormField
-                    icon={<Building size={18} />}
-                    label="College Name"
-                    error={errors.college}
-                    focused={focusedField === 'college'}
-                >
-                    <input
-                        data-form-field
-                        type="text"
-                        value={formData.college}
-                        onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                        onFocus={() => setFocusedField('college')}
-                        onBlur={() => setFocusedField(null)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Enter your college name"
-                        className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
-                    />
-                </FormField>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <FormField
-                        icon={<GraduationCap size={18} />}
-                        label="Year"
-                        error={errors.year}
-                        focused={focusedField === 'year'}
-                    >
-                        <select
-                            data-form-field
-                            value={formData.year}
-                            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            onFocus={() => setFocusedField('year')}
-                            onBlur={() => setFocusedField(null)}
-                            className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none appearance-none"
-                        >
-                            <option value="" className="bg-manthan-black">Select Year</option>
-                            {yearOptions.map((y) => (
-                                <option key={y} value={y} className="bg-manthan-black">{y}</option>
-                            ))}
-                        </select>
-                    </FormField>
-
-                    <FormField
-                        icon={<BookOpen size={18} />}
-                        label="Department"
-                        error={errors.department}
-                        focused={focusedField === 'department'}
-                    >
-                        <input
-                            data-form-field
-                            type="text"
-                            value={formData.department}
-                            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                            onFocus={() => setFocusedField('department')}
-                            onBlur={() => setFocusedField(null)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="e.g., Computer Science"
-                            className="w-full bg-transparent px-4 py-4 text-sm text-gray-100 placeholder:text-gray-600 focus:outline-none"
-                        />
-                    </FormField>
-                </div>
-            </div>
-
-            <p className="mt-6 text-gray-600 text-xs text-center">
-                Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-gray-500 text-[10px] font-mono">Enter ↵</kbd> to move between fields
-            </p>
-        </div>
-    );
-}
-
-/* ──────────────────────────────────────────────
-   Youform-style field wrapper
-   ────────────────────────────────────────────── */
-function FormField({
-    icon,
-    label,
-    error,
-    focused,
-    children,
-}: {
-    icon: React.ReactNode;
-    label: string;
-    error?: string;
-    focused: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase">
-                {label}
-            </label>
-            <div
-                className={`relative flex items-center rounded-xl border transition-all duration-300 ${error
-                    ? 'border-manthan-crimson/50 bg-manthan-crimson/10 shadow-[0_0_15px_rgba(220,20,60,0.1)]'
-                    : focused
-                        ? 'border-manthan-gold/60 bg-manthan-gold/10 shadow-[0_0_20px_rgba(212,168,55,0.15)]'
-                        : 'border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]'
-                    }`}
-            >
-                <div className={`pl-4 flex items-center justify-center transition-colors duration-300 ${focused ? 'text-manthan-gold' : 'text-gray-500'
-                    }`}>
+            <label className="block text-xs font-medium text-[#3d2b1f]/60 mb-1.5 tracking-wide uppercase font-ancient">{label}</label>
+            <div className={`relative flex items-center rounded-xl border transition-all duration-300 ${error ? 'border-manthan-crimson/50 bg-manthan-crimson/5' : focused ? 'border-manthan-maroon/40 bg-manthan-maroon/5' : 'border-manthan-maroon/10 bg-black/5 hover:border-manthan-maroon/20'}`}>
+                <div className={`pl-4 flex items-center justify-center transition-colors duration-300 ${focused ? 'text-manthan-maroon' : 'text-[#3d2b1f]/40'}`}>
                     {icon}
-                    <div className="w-px h-6 bg-white/10 ml-4" />
+                    <div className="w-px h-6 bg-manthan-maroon/10 ml-4" />
                 </div>
                 {children}
             </div>
-            {error && (
-                <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-manthan-crimson text-xs mt-1.5 pl-1"
-                >
-                    {error}
-                </motion.p>
-            )}
+            {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-manthan-crimson text-[10px] mt-1.5 font-serif italic">{error}</motion.p>}
         </div>
     );
 }
 
-/* ──────────────────────────────────────────────
-   Step 2 — Event Selection
-   ────────────────────────────────────────────── */
-function EventSelectionStep({
-    events,
-    selectedIds,
-    toggleEvent,
-    error,
-    previewTotal,
-    teamRegistrations,
-    updateTeamRegistration,
-}: {
-    events: Event[];
-    selectedIds: string[];
-    toggleEvent: (id: string) => void;
-    error?: string;
-    previewTotal: number;
-    teamRegistrations: Record<string, TeamRegistration>;
-    updateTeamRegistration: (eventId: string, updater: (current: TeamRegistration) => TeamRegistration) => void;
-}) {
+function BasicInfoStep({ formData, setFormData, errors, focusedField, setFocusedField, handleKeyDown, onNext }: any) {
+    return (
+        <div className="space-y-6">
+            <div className="mb-8">
+                <h2 className="font-ancient text-2xl sm:text-3xl text-manthan-maroon mb-2">Identity Details</h2>
+                <p className="text-[#5c4033] font-serif italic">Inscribe your personal information into the records</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <FormField icon={<User size={18} />} label="Full Name" error={errors.name} focused={focusedField === 'name'}>
+                    <input data-form-field type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)} onKeyDown={handleKeyDown} placeholder="Enter your full name" className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif placeholder:text-[#3d2b1f]/40 focus:outline-none" />
+                </FormField>
+                <FormField icon={<Mail size={18} />} label="Email Address" error={errors.email} focused={focusedField === 'email'}>
+                    <input data-form-field type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField(null)} onKeyDown={handleKeyDown} placeholder="your@email.com" className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif placeholder:text-[#3d2b1f]/40 focus:outline-none" />
+                </FormField>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-1 gap-5">
+                <FormField icon={<Phone size={18} />} label="Mobile Number" error={errors.phone} focused={focusedField === 'phone'}>
+                    <input data-form-field type="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} onFocus={() => setFocusedField('phone')} onBlur={() => setFocusedField(null)} onKeyDown={handleKeyDown} placeholder="10-digit mobile number" className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif placeholder:text-[#3d2b1f]/40 focus:outline-none" />
+                </FormField>
+                <FormField icon={<Building size={18} />} label="College Name" error={errors.college} focused={focusedField === 'college'}>
+                    <input data-form-field type="text" value={formData.college} onChange={(e) => setFormData({ ...formData, college: e.target.value })} onFocus={() => setFocusedField('college')} onBlur={() => setFocusedField(null)} onKeyDown={handleKeyDown} placeholder="Enter your college name" className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif placeholder:text-[#3d2b1f]/40 focus:outline-none" />
+                </FormField>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <FormField icon={<GraduationCap size={18} />} label="Year" error={errors.year} focused={focusedField === 'year'}>
+                    <select data-form-field value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} onFocus={() => setFocusedField('year')} onBlur={() => setFocusedField(null)} className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif focus:outline-none appearance-none">
+                        <option value="">Select Year</option>
+                        {yearOptions.map((y) => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                </FormField>
+                <FormField icon={<BookOpen size={18} />} label="Department" error={errors.department} focused={focusedField === 'department'}>
+                    <input data-form-field type="text" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} onFocus={() => setFocusedField('department')} onBlur={() => setFocusedField(null)} onKeyDown={handleKeyDown} placeholder="e.g., Computer Science" className="w-full bg-transparent px-4 py-4 text-sm text-[#3d2b1f] font-serif placeholder:text-[#3d2b1f]/40 focus:outline-none" />
+                </FormField>
+            </div>
+        </div>
+    );
+}
+
+function EventSelectionStep({ events, selectedIds, toggleEvent, error, previewTotal, teamRegistrations, updateTeamRegistration }: any) {
     const categories = ['technical', 'cultural', 'sports'] as const;
-    const sportsTrackTitles: Record<'indoor' | 'outdoor', string> = {
-        outdoor: 'Outdoor Sports',
-        indoor: 'Indoor Sports',
-    };
 
     const renderEventCard = (event: Event) => {
         const isSelected = selectedIds.includes(event.id);
         const bounds = getTeamBounds(event);
-        const teamLabel = bounds.min === bounds.max
-            ? (bounds.max === 1 ? 'Solo' : `Team of ${bounds.max}`)
-            : `Team ${bounds.min}-${bounds.max}`;
-
-        const amountLabel = event.fee_calculation === 'per_participant'
-            ? `${formatFee(event.fee)} / participant`
-            : formatFee(event.fee);
+        const teamLabel = bounds.min === bounds.max ? (bounds.max === 1 ? 'Solo' : `Troop of ${bounds.max}`) : `Troop ${bounds.min}-${bounds.max}`;
+        const amountLabel = event.fee_calculation === 'per_participant' ? `${formatFee(event.fee)} / peer` : formatFee(event.fee);
 
         return (
-            <motion.button
-                key={event.id}
-                onClick={() => toggleEvent(event.id)}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 ${isSelected
-                    ? 'border-manthan-gold/60 bg-manthan-gold/10 shadow-[0_0_20px_rgba(212,168,55,0.1)]'
-                    : 'border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.06]'
-                    }`}
-            >
+            <motion.button key={event.id} onClick={() => toggleEvent(event.id)} whileTap={{ scale: 0.98 }} className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 ${isSelected ? 'border-manthan-maroon/40 bg-manthan-maroon/5 shadow-[0_0_20px_rgba(92,10,10,0.05)] scale-[1.02]' : 'border-manthan-maroon/10 bg-black/5 hover:border-manthan-maroon/20 hover:scale-[1.01]'}`}>
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                        <h4 className={`font-semibold text-sm mb-1 ${isSelected ? 'text-manthan-gold' : 'text-gray-200'
-                            }`}>
-                            {event.name}
-                        </h4>
-                        <p className="text-gray-500 text-xs line-clamp-1 mb-2">
-                            {event.description}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-600">
+                        <h4 className={`font-ancient text-lg mb-1 ${isSelected ? 'text-manthan-maroon' : 'text-[#3d2b1f]'}`}>{event.name}</h4>
+                        <p className="text-[#5c4033] font-serif italic text-sm line-clamp-1 mb-2">{event.description}</p>
+                        <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest text-[#3d2b1f]/40 font-ancient">
                             <span>{teamLabel}</span>
                             <span>·</span>
                             <span>{event.venue}</span>
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                        <span className={`text-sm font-bold ${isSelected ? 'text-manthan-gold' : 'text-gray-400'
-                            }`}>
-                            {amountLabel}
-                        </span>
-                        <div
-                            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected
-                                ? 'bg-manthan-gold border-manthan-gold'
-                                : 'border-gray-600'
-                                }`}
-                        >
-                            {isSelected && <Check size={12} className="text-manthan-black" />}
+                        <span className={`font-ancient text-sm ${isSelected ? 'text-manthan-maroon' : 'text-[#3d2b1f]/60'}`}>{amountLabel}</span>
+                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-manthan-maroon border-manthan-maroon' : 'border-manthan-maroon/20'}`}>
+                            {isSelected && <Check size={12} className="text-white" />}
                         </div>
                     </div>
                 </div>
@@ -988,112 +583,25 @@ function EventSelectionStep({
     };
 
     return (
-        <div>
-            <div className="mb-8">
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-gold-gradient mb-2">
-                    Choose your events
-                </h2>
-                <p className="text-gray-500 text-sm">
-                    Select the events you&apos;d like to participate in
-                </p>
+        <div className="space-y-8">
+            <div className="mb-4">
+                <h2 className="font-ancient text-2xl sm:text-3xl text-manthan-maroon mb-2">Sanctuary & Realms</h2>
+                <p className="text-[#5c4033] font-serif italic mb-6">Select the chronicles you wish to join</p>
             </div>
 
-            {error && (
-                <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-3 rounded-lg bg-manthan-crimson/10 border border-manthan-crimson/20 text-manthan-crimson text-sm"
-                >
-                    {error}
-                </motion.div>
-            )}
+            {error && <div className="p-4 bg-manthan-crimson/5 border border-manthan-crimson/10 rounded-xl text-manthan-crimson text-xs italic font-serif">{error}</div>}
 
-            {events.length === 0 && (
-                <div className="mb-8 rounded-xl border border-white/[0.08] bg-white/[0.02] p-5">
-                    <h3 className="text-sm font-semibold text-manthan-gold mb-4">Sports Committee Structure</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div>
-                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Outdoor Sports</p>
-                            <ul className="space-y-1.5">
-                                {sportsCommitteeStructure.outdoor.map((sport) => (
-                                    <li key={sport} className="text-sm text-gray-300">• {sport}</li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">Indoor Sports</p>
-                            <ul className="space-y-1.5">
-                                {sportsCommitteeStructure.indoor.map((sport) => (
-                                    <li key={sport} className="text-sm text-gray-300">• {sport}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-4">
-                        No active events are published yet. We can now add these sports one by one.
-                    </p>
-                </div>
-            )}
-
-            <div className="space-y-8">
+            <div className="space-y-12">
                 {categories.map((cat) => {
                     const catEvents = events.filter((e) => e.category === cat);
                     if (catEvents.length === 0) return null;
-                    const colors = categoryColors[cat];
-
-                    if (cat === 'sports') {
-                        const outdoorEvents = catEvents.filter((event) => getSportsTrackByName(event.name) === 'outdoor');
-                        const indoorEvents = catEvents.filter((event) => getSportsTrackByName(event.name) === 'indoor');
-                        const otherSportsEvents = catEvents.filter((event) => !getSportsTrackByName(event.name));
-
-                        const groupedSports: Array<{ track: 'outdoor' | 'indoor'; list: Event[] }> = [
-                            { track: 'outdoor', list: outdoorEvents },
-                            { track: 'indoor', list: indoorEvents },
-                        ];
-
-                        return (
-                            <div key={cat}>
-                                <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${colors.text}`}>
-                                    {categoryIcons[cat]} {cat}
-                                </h3>
-
-                                <div className="space-y-5">
-                                    {groupedSports.map(({ track, list }) => {
-                                        if (list.length === 0) return null;
-                                        return (
-                                            <div key={track}>
-                                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                                                    {sportsTrackTitles[track]}
-                                                </p>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    {list.map((event) => renderEventCard(event))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                    {otherSportsEvents.length > 0 && (
-                                        <div>
-                                            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                                                More Sports Events
-                                            </p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {otherSportsEvents.map((event) => renderEventCard(event))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    }
-
                     return (
                         <div key={cat}>
-                            <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 ${colors.text}`}>
-                                {categoryIcons[cat]} {cat}
+                            <h3 className={`font-ancient text-sm uppercase tracking-widest mb-4 border-b border-manthan-maroon/10 pb-2 ${categoryColors[cat].text}`}>
+                                {categoryIcons[cat]} {cat} Realm
                             </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {catEvents.map((event) => renderEventCard(event))}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {catEvents.map(renderEventCard)}
                             </div>
                         </div>
                     );
@@ -1101,272 +609,83 @@ function EventSelectionStep({
             </div>
 
             {selectedIds.length > 0 && (
-                <div className="mt-8 space-y-4">
-                    {events
-                        .filter((event) => selectedIds.includes(event.id) && needsTeamDetails(event))
-                        .map((event) => {
-                            const team = teamRegistrations[event.id];
-                            if (!team) return null;
-
-                            const bounds = getTeamBounds(event);
-                            const isFixed = bounds.min === bounds.max;
-
-                            return (
-                                <div
-                                    key={`${event.id}-team-config`}
-                                    className="p-4 rounded-xl border border-manthan-gold/20 bg-manthan-gold/5"
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-                                        <h4 className="text-manthan-gold font-semibold text-sm">{event.name} · Team Details</h4>
-                                        <span className="text-xs text-gray-500">
-                                            {event.fee_calculation === 'per_participant' ? 'Fee per participant' : 'Fee per team'}
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Team Name (optional)</label>
-                                            <input
-                                                type="text"
-                                                value={team.team_name || ''}
-                                                onChange={(e) =>
-                                                    updateTeamRegistration(event.id, (current) => ({
-                                                        ...current,
-                                                        team_name: e.target.value,
-                                                    }))
-                                                }
-                                                className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-manthan-gold/40 focus:outline-none"
-                                                placeholder="Enter team name"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Team Size</label>
-                                            {isFixed ? (
-                                                <div className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 opacity-60">
-                                                    {team.team_size}
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-0 rounded-lg border border-white/20 bg-white/[0.04] overflow-hidden">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            updateTeamRegistration(event.id, (current) => ({
-                                                                ...current,
-                                                                team_size: current.team_size - 1,
-                                                            }))
-                                                        }
-                                                        disabled={team.team_size <= bounds.min}
-                                                        className="px-4 py-2 text-lg font-bold text-manthan-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
-                                                    >
-                                                        −
-                                                    </button>
-                                                    <span className="flex-1 text-center text-sm font-semibold text-gray-100 py-2 select-none">
-                                                        {team.team_size}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            updateTeamRegistration(event.id, (current) => ({
-                                                                ...current,
-                                                                team_size: current.team_size + 1,
-                                                            }))
-                                                        }
-                                                        disabled={team.team_size >= bounds.max}
-                                                        className="px-4 py-2 text-lg font-bold text-manthan-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed select-none"
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                            )}
-                                            <p className="text-[11px] text-gray-600 mt-1">
-                                                {isFixed
-                                                    ? `Fixed team size: ${bounds.min}`
-                                                    : `${bounds.min} to ${bounds.max} participants`}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {team.members.length > 0 && (
-                                        <div className="space-y-2">
-                                            <p className="text-xs uppercase tracking-wide text-gray-400">
-                                                Team member names
-                                            </p>
-                                            {team.members.map((member, index) => (
-                                                <div key={`${event.id}-member-${index}`} className="grid grid-cols-1 gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={member.name}
-                                                        onChange={(e) =>
-                                                            updateTeamRegistration(event.id, (current) => {
-                                                                const members = [...current.members];
-                                                                members[index] = {
-                                                                    ...members[index],
-                                                                    name: e.target.value,
-                                                                };
-                                                                return { ...current, members };
-                                                            })
-                                                        }
-                                                        placeholder={`Teammate ${index + 1} name`}
-                                                        className="w-full rounded-lg border border-white/20 bg-white/[0.04] px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-manthan-gold/40 focus:outline-none"
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                <div className="mt-12 space-y-6">
+                    {events.filter(e => selectedIds.includes(e.id) && needsTeamDetails(e)).map(event => {
+                        const team = teamRegistrations[event.id];
+                        if (!team) return null;
+                        const bounds = getTeamBounds(event);
+                        return (
+                            <div key={event.id} className="p-6 rounded-2xl border border-manthan-maroon/10 bg-manthan-maroon/5">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 p-4 border-b border-manthan-maroon/5">
+                                    <h4 className="text-manthan-maroon font-ancient text-sm uppercase tracking-wider">{event.name} · Fellowship Details</h4>
+                                    <span className="text-[10px] uppercase tracking-widest text-[#3d2b1f]/40 font-ancient">
+                                        {event.fee_calculation === 'per_participant' ? 'Dues per peer' : 'Dues per troop'}
+                                    </span>
                                 </div>
-                            );
-                        })}
-                </div>
-            )}
-
-            {selectedIds.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-8 p-4 rounded-xl border border-manthan-gold/20 bg-manthan-gold/5"
-                >
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">
-                            {selectedIds.length} event{selectedIds.length !== 1 ? 's' : ''} selected
-                        </span>
-                        <span className="text-manthan-gold font-bold text-lg">
-                            {formatFee(previewTotal)}
-                        </span>
-                    </div>
-                </motion.div>
-            )}
-        </div>
-    );
-}
-
-/* ──────────────────────────────────────────────
-   Step 3 — Payment Review
-   ────────────────────────────────────────────── */
-function PaymentStep({
-    formData,
-    selectedEvents,
-    previewTotal,
-    teamRegistrations,
-    razorpayReady,
-    paymentMessage,
-    paymentError,
-}: {
-    formData: RegistrationFormData;
-    selectedEvents: Event[];
-    previewTotal: number;
-    teamRegistrations: Record<string, TeamRegistration>;
-    razorpayReady: boolean;
-    paymentMessage: string;
-    paymentError: string;
-}) {
-    return (
-        <div>
-            <div className="mb-8">
-                <h2 className="font-heading text-2xl sm:text-3xl font-bold text-gold-gradient mb-2">
-                    Review &amp; Pay
-                </h2>
-                <p className="text-gray-500 text-sm">
-                    Verify your details and proceed to payment
-                </p>
-            </div>
-
-            {/* Personal Info */}
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 mb-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
-                    Your Details
-                </h3>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                    <InfoRow label="Name" value={formData.name} />
-                    <InfoRow label="Email" value={formData.email} />
-                    <InfoRow label="Phone" value={formData.phone} />
-                    <InfoRow label="College" value={formData.college} />
-                    <InfoRow label="Year" value={formData.year} />
-                    <InfoRow label="Department" value={formData.department} />
-                </div>
-            </div>
-
-            {/* Events Breakdown */}
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 mb-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">
-                    Selected Events
-                </h3>
-                <div className="space-y-3">
-                    {selectedEvents.map((event) => (
-                        <div key={event.id} className="flex items-center justify-between py-2">
-                            <div>
-                                <p className="text-gray-200 text-sm font-medium">{event.name}</p>
-                                <p className="text-gray-600 text-xs">
-                                    {categoryIcons[event.category]} {event.category} · {event.venue}
-                                    {needsTeamDetails(event) && (
-                                        <>
-                                            {' · '}
-                                            Team size {teamRegistrations[event.id]?.team_size || getDefaultTeamSize(event)}
-                                        </>
-                                    )}
-                                </p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                    <input type="text" value={team.team_name} onChange={e => updateTeamRegistration(event.id, c => ({ ...c, team_name: e.target.value }))} placeholder="Fellowship Name" className="w-full bg-white/50 border border-manthan-maroon/10 rounded-xl px-4 py-3 text-sm font-serif focus:outline-none" />
+                                    <div className="flex items-center justify-between border border-manthan-maroon/10 rounded-xl px-4">
+                                        <button onClick={() => updateTeamRegistration(event.id, c => ({ ...c, team_size: c.team_size - 1 }))} disabled={team.team_size <= bounds.min} className="p-2 text-manthan-maroon disabled:opacity-30">−</button>
+                                        <span className="font-ancient text-sm">{team.team_size} peers</span>
+                                        <button onClick={() => updateTeamRegistration(event.id, c => ({ ...c, team_size: c.team_size + 1 }))} disabled={team.team_size >= bounds.max} className="p-2 text-manthan-maroon disabled:opacity-30">+</button>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {team.members.map((m, i) => (
+                                        <input key={i} type="text" value={m.name} onChange={e => updateTeamRegistration(event.id, c => { const ms = [...c.members]; ms[i].name = e.target.value; return { ...c, members: ms }; })} placeholder={`Peer ${i + 1} Name`} className="w-full bg-white/50 border border-manthan-maroon/10 rounded-xl px-4 py-3 text-sm font-serif focus:outline-none" />
+                                    ))}
+                                </div>
                             </div>
-                            <span className="text-manthan-gold font-semibold text-sm">
-                                {formatFee(estimateEventAmount(event, teamRegistrations[event.id]))}
-                            </span>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-                <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-                    <span className="text-gray-300 font-semibold">Total Amount</span>
-                    <span className="text-manthan-gold font-bold text-2xl">
-                        {formatFee(previewTotal)}
-                    </span>
-                </div>
-            </div>
-
-            {/* Security badge */}
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-gold/5 border border-manthan-gold/10 mb-5">
-                <ShieldCheck size={18} className="text-manthan-gold flex-shrink-0" />
-                <p className="text-gray-500 text-xs">
-                    Secure payment via Razorpay. Your registration is confirmed only after successful payment verification.
-                </p>
-            </div>
-
-            {!razorpayReady && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-crimson/10 border border-manthan-crimson/20 mb-5">
-                    <AlertTriangle size={18} className="text-manthan-crimson flex-shrink-0" />
-                    <p className="text-manthan-crimson text-xs">
-                        Payment gateway is loading. Please wait a moment before clicking Pay.
-                    </p>
-                </div>
-            )}
-
-            {paymentMessage && (
-                <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-xl bg-manthan-gold/10 border border-manthan-gold/20 flex items-start gap-3 mb-5"
-                >
-                    <ShieldCheck size={18} className="text-manthan-gold flex-shrink-0 mt-0.5" />
-                    <p className="text-manthan-gold-light text-sm">{paymentMessage}</p>
-                </motion.div>
-            )}
-
-            {paymentError && (
-                <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-xl bg-red-900/20 border border-red-500/20 flex items-start gap-3 mb-5"
-                >
-                    <AlertTriangle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-red-300 text-sm">{paymentError}</p>
-                </motion.div>
             )}
         </div>
     );
 }
 
-/* ──────────────────────────────────────────────
-   Shared helpers
-   ────────────────────────────────────────────── */
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-    <div>
-        <span className="text-gray-600 text-xs block mb-0.5">{label}</span>
-        <span className="text-gray-200 text-sm font-medium">{value || 'N/A'}</span>
-    </div>
-);
+function PaymentStep({ formData, selectedEvents, previewTotal, teamRegistrations, razorpayReady, paymentMessage, paymentError }: any) {
+    return (
+        <div className="space-y-8">
+            <div className="mb-4 text-center">
+                <h2 className="font-ancient text-3xl text-manthan-maroon mb-2">The Final Seal</h2>
+                <p className="text-[#5c4033] font-serif italic">Verify your inscriptions before sealing the record</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-6 rounded-2xl border border-manthan-maroon/10 bg-manthan-maroon/5 space-y-4">
+                    <h3 className="font-ancient text-xs uppercase tracking-widest text-manthan-maroon">Your Scroll</h3>
+                    <div className="space-y-2 font-serif text-sm">
+                        <p><span className="text-[#3d2b1f]/40 uppercase text-[10px] tracking-widest mr-2">Name:</span> {formData.name}</p>
+                        <p><span className="text-[#3d2b1f]/40 uppercase text-[10px] tracking-widest mr-2">Email:</span> {formData.email}</p>
+                        <p><span className="text-[#3d2b1f]/40 uppercase text-[10px] tracking-widest mr-2">Origin:</span> {formData.college}</p>
+                    </div>
+                </div>
+
+                <div className="p-6 rounded-2xl border border-manthan-maroon/10 bg-manthan-maroon/5 space-y-4">
+                    <h3 className="font-ancient text-xs uppercase tracking-widest text-manthan-maroon">Chosen Realms</h3>
+                    <div className="space-y-3">
+                        {selectedEvents.map(e => (
+                            <div key={e.id} className="flex justify-between items-center text-sm font-serif">
+                                <span className="text-[#3d2b1f]">{e.name}</span>
+                                <span className="text-manthan-maroon font-bold">{formatFee(estimateEventAmount(e, teamRegistrations[e.id]))}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-8 rounded-2xl border-2 border-manthan-maroon/10 bg-manthan-maroon/5 text-center">
+                <p className="text-[#3d2b1f]/60 uppercase tracking-[0.2em] text-[10px] font-ancient mb-2">Total Dues</p>
+                <p className="text-5xl font-ancient text-manthan-maroon">{formatFee(previewTotal)}</p>
+            </div>
+
+            <div className="flex items-start gap-4 p-4 bg-manthan-maroon/5 rounded-xl border border-manthan-maroon/10">
+                <ShieldCheck className="text-manthan-maroon mt-1" size={20} />
+                <p className="text-[#5c4033] font-serif italic text-xs leading-relaxed">Secure payment via Royal Razorpay. Your inscription is final only after successful dues are cleared.</p>
+            </div>
+
+            {paymentError && <div className="p-4 bg-manthan-crimson/5 border border-manthan-crimson/10 rounded-xl text-manthan-crimson text-xs italic font-serif flex items-center gap-3"><AlertTriangle size={18} /> {paymentError}</div>}
+        </div>
+    );
+}

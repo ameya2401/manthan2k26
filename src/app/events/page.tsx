@@ -37,13 +37,13 @@ export default async function EventsPage() {
 
                 <div className="max-w-7xl mx-auto relative z-10">
                     {/* Header */}
-                    <div className="text-center mb-12">
-                        <h1 className="font-heading text-4xl sm:text-5xl font-bold text-gold-gradient mb-4">
-                            Events
+                    <div className="text-center mb-16">
+                        <h1 className="font-ancient text-5xl md:text-7xl royal-header mb-6">
+                            The Chronicles
                         </h1>
-                        <p className="text-gray-400 max-w-2xl mx-auto">
-                            Explore our exciting lineup of technical, cultural, and sports events.
-                            Register for one or more events and showcase your talent!
+                        <p className="font-serif italic text-manthan-gold/60 text-xl max-w-2xl mx-auto">
+                            Step into the arena where legends are forged and history is written.
+                            Explore our technical, cultural, and sports realms.
                         </p>
                     </div>
 

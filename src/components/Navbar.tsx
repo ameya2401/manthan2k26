@@ -145,9 +145,9 @@ export default function Navbar() {
                         initial={{ opacity: 0, scale: 1.1 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-[105] bg-manthan-black flex flex-col items-center justify-center p-8 lg:hidden"
+                        className="fixed inset-0 z-[105] bg-manthan-black flex flex-col items-center p-6 lg:hidden overflow-y-auto"
                     >
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none fixed">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(139,0,0,0.2)_0%,transparent_70%)]"></div>
                             {/* Funky Background Artifacts */}
                             <motion.div
@@ -157,7 +157,7 @@ export default function Navbar() {
                             />
                         </div>
 
-                        <div className="flex flex-col items-center space-y-10 relative z-10 w-full max-w-lg">
+                        <div className="flex flex-col items-center space-y-6 md:space-y-10 relative z-10 w-full max-w-lg py-20">
                             {[...navLinks, ...dropdownLinks].map((link, index) => (
                                 <motion.div
                                     key={link.href}
@@ -169,16 +169,16 @@ export default function Navbar() {
                                     <Link
                                         href={link.href}
                                         onClick={() => setIsOpen(false)}
-                                        className="flex items-center justify-between group w-full py-6 border-b border-manthan-gold/10"
+                                        className="flex items-center justify-between group w-full py-4 border-b border-manthan-gold/10"
                                     >
                                         <div className="flex flex-col">
-                                            <span className={`font-pfeffer text-4xl md:text-5xl tracking-[0.15em] transition-all duration-500 ${activeLink === link.href ? 'text-manthan-gold' : 'text-gray-500 group-hover:text-manthan-gold'
+                                            <span className={`font-pfeffer text-3xl md:text-5xl tracking-[0.15em] transition-all duration-500 ${activeLink === link.href ? 'text-manthan-gold' : 'text-gray-500 group-hover:text-manthan-gold'
                                                 }`}>
                                                 {link.label}
                                             </span>
                                             <span className="text-[10px] text-manthan-gold/30 uppercase tracking-[0.4em] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Explore Realm</span>
                                         </div>
-                                        <ChevronRight size={40} className="text-manthan-gold opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-10 group-hover:translate-x-0" />
+                                        <ChevronRight size={32} className="text-manthan-gold opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-10 group-hover:translate-x-0" />
                                     </Link>
                                 </motion.div>
                             ))}
