@@ -5,9 +5,9 @@ export default function Footer() {
     return (
         <footer className="bg-manthan-black border-t border-manthan-gold/10 pt-20 pb-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-16">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-8 gap-y-12 mb-16">
                     {/* Brand & Socials */}
-                    <div className="space-y-6 text-center md:text-left">
+                    <div className="space-y-6 text-center md:text-left lg:col-span-3">
                         <div>
                             <h3 className="font-heading text-3xl font-black text-gold-gradient tracking-tighter mb-2">
                                 MANTHAN 2026
@@ -37,7 +37,7 @@ export default function Footer() {
                     </div>
 
                     {/* Quick Links */}
-                    <div className="text-center md:text-left">
+                    <div className="text-center md:text-left lg:col-span-2">
                         <h4 className="text-manthan-gold font-bold uppercase tracking-widest text-sm mb-6">Quick Links</h4>
                         <ul className="space-y-4">
                             {[
@@ -61,7 +61,7 @@ export default function Footer() {
                     </div>
 
                     {/* Policies */}
-                    <div className="text-center md:text-left">
+                    <div className="text-center md:text-left lg:col-span-2">
                         <h4 className="text-manthan-gold font-bold uppercase tracking-widest text-sm mb-6">Policies</h4>
                         <ul className="space-y-4">
                             {[
@@ -83,34 +83,34 @@ export default function Footer() {
                     </div>
 
                     {/* Contact Info */}
-                    <div className="text-center md:text-left">
+                    <div className="text-center md:text-left lg:col-span-3">
                         <h4 className="text-manthan-gold font-bold uppercase tracking-widest text-sm mb-6">Contact Us</h4>
                         <ul className="space-y-4 text-gray-400 text-sm">
-                            <li className="flex items-start justify-center md:justify-start space-x-3">
-                                <MapPin size={20} className="text-manthan-gold shrink-0" />
-                                <span>Bharati Vidyapeeth&apos;s Institute of Management and Information Technology (BVIMIT), Sector-8, Belapur, CBD, Navi Mumbai - 400614</span>
+                            <li className="flex items-start justify-center md:justify-start gap-4">
+                                <MapPin size={20} className="text-manthan-gold shrink-0 mt-1" />
+                                <span className="leading-relaxed text-left">Bharati Vidyapeeth&apos;s Institute of Management and Information Technology (BVIMIT), Sector-8, Belapur, CBD, Navi Mumbai - 400614</span>
                             </li>
-                            <li className="flex items-center justify-center md:justify-start space-x-3">
+                            <li className="flex items-center justify-center md:justify-start gap-4">
                                 <Phone size={18} className="text-manthan-gold shrink-0" />
-                                <div className="flex flex-col md:flex-row md:space-x-2">
+                                <div className="flex flex-col md:flex-row md:gap-x-2">
                                     <a href="tel:02227578415" className="hover:text-manthan-gold transition-colors duration-300">022-27578415</a>
-                                    <span className="hidden md:inline">,</span>
+                                    <span className="hidden md:inline">/</span>
                                     <a href="tel:+918657008016" className="hover:text-manthan-gold transition-colors duration-300">+91 8657008016</a>
                                 </div>
                             </li>
-                            <li className="flex items-center justify-center md:justify-start space-x-3">
+                            <li className="flex items-center justify-center md:justify-start gap-4">
                                 <Globe size={18} className="text-manthan-gold shrink-0" />
-                                <a href="https://www.bvimit.co.in" target="_blank" rel="noopener noreferrer" className="hover:text-manthan-gold transition-colors duration-300">www.bvimit.co.in</a>
+                                <a href="https://www.bvimit.co.in" target="_blank" rel="noopener noreferrer" className="hover:text-manthan-gold transition-colors duration-300 truncate">www.bvimit.co.in</a>
                             </li>
-                            <li className="flex items-center justify-center md:justify-start space-x-3">
+                            <li className="flex items-center justify-center md:justify-start gap-4">
                                 <Mail size={18} className="text-manthan-gold shrink-0" />
-                                <a href="mailto:principal.bvimit@bharatividyapeeth.edu" className="hover:text-manthan-gold transition-colors duration-300">principal.bvimit@bharatividyapeeth.edu</a>
+                                <a href="mailto:principal.bvimit@bharatividyapeeth.edu" className="hover:text-manthan-gold transition-colors duration-300 break-words md:break-normal">principal.bvimit@bharatividyapeeth.edu</a>
                             </li>
                         </ul>
                     </div>
 
                     {/* Location Map */}
-                    <div className="h-48 lg:h-full min-h-[200px] rounded-2xl overflow-hidden border border-manthan-gold/20 shadow-lg shadow-manthan-gold/5 group">
+                    <div className="lg:col-span-2 h-48 lg:h-[200px] rounded-2xl overflow-hidden border border-manthan-gold/20 shadow-lg shadow-manthan-gold/5 group">
                         <iframe
                             src="https://www.google.com/maps?q=Bharati%20Vidyapeeth%E2%80%99s%20Institute%20of%20Management%20%26%20Info%20Tech%20(MCA)%20Master%20of%20Computer%20Application%20under%20University%20of%20Mumbai&z=17&output=embed"
                             width="100%"
