@@ -24,14 +24,14 @@ export default function EventsFilter({ events }: { events: Event[] }) {
     return (
         <>
             {/* Filter Tabs */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12 parchment-container !p-6 rounded-none border-none shadow-none bg-transparent">
+            <div className="flex flex-wrap justify-center gap-4 mb-16">
                 {categories.map((cat) => (
                     <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
-                        className={`font-ancient px-8 py-3 transition-all duration-300 uppercase tracking-widest text-sm ${activeCategory === cat
-                            ? 'bg-manthan-maroon text-white shadow-[0_0_20px_rgba(92,10,10,0.3)] scale-105'
-                            : 'parchment-input hover:border-manthan-maroon/60'
+                        className={`font-ancient px-8 py-3 transition-all duration-300 uppercase tracking-widest text-sm rounded-full border-2 ${activeCategory === cat
+                            ? 'bg-manthan-gold text-manthan-black border-manthan-gold shadow-[0_0_20px_rgba(212,168,55,0.4)] scale-105'
+                            : 'bg-transparent text-manthan-gold border-manthan-gold/30 hover:border-manthan-gold/60 hover:bg-manthan-gold/5'
                             }`}
                     >
                         {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -134,11 +134,11 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                         className="parchment-body p-8"
                     >
                         {activeCategory !== 'all' && (
-                            <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
-                                {activeCategory} Events
+                            <h2 className="font-ancient text-3xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-10 border-b-2 border-[#3d2b1f]/10 pb-6 text-center">
+                                {activeCategory} Realms
                             </h2>
                         )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 event-sub-container p-6 rounded-2xl">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {filtered.map((event) => (
                                 <EventCard key={event.id} event={event} />
                             ))}

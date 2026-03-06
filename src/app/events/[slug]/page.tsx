@@ -3,22 +3,15 @@ import { formatFee, formatDateTime, categoryColors, categoryIcons } from '@/lib/
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
-import { Calendar, MapPin, Users, ArrowLeft, IndianRupee } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowLeft, IndianRupee, Sparkles } from 'lucide-react';
 import { notFound } from 'next/navigation';
+import ScrollWrapper from '@/components/ScrollWrapper';
+import AnimatedButton from '@/components/AnimatedButton';
 
 import { getEventBySlug } from '@/lib/events-catalog';
 
 async function getEvent(slug: string): Promise<Event | null> {
-    try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/events`, { cache: 'no-store' });
-        const data = await res.json();
-        const events = data.events || [];
-        const event = events.find((e: Event) => e.slug === slug);
-        return event || getEventBySlug(slug) || null;
-    } catch {
-        return getEventBySlug(slug) || null;
-    }
+    return getEventBySlug(slug) || null;
 }
 
 export const dynamic = 'force-dynamic';
@@ -53,7 +46,7 @@ export default async function EventDetailPage({
     return (
         <>
             <Navbar />
-            <main className="pt-24 pb-16 px-4 min-h-screen relative overflow-hidden">
+            <main className="pt-24 pb-16 px-4 min-h-screen relative">
                 {/* Background Glow */}
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-manthan-maroon/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -67,114 +60,89 @@ export default async function EventDetailPage({
                         Back to Events
                     </Link>
 
-                    {/* Event Card */}
-                    <div className="glass-card p-8 md:p-12">
+                    {/* Event Scroll Container */}
+                    <ScrollWrapper padding="p-8 md:p-16">
                         {/* Category Badge */}
-                        <span className={`inline-block px-4 py-1.5 text-sm font-medium rounded-full mb-6 ${colors.badge}`}>
-                            {categoryIcons[event.category]} {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
-                        </span>
+                        <div className="flex justify-center mb-8">
+                            <span className={`inline-block px-6 py-2 text-xs font-ancient uppercase tracking-widest rounded-full border border-manthan-maroon/20 text-manthan-maroon bg-manthan-maroon/5`}>
+                                {categoryIcons[event.category]} {event.category} Realm
+                            </span>
+                        </div>
 
                         {/* Title */}
-                        <h1 className="font-heading text-4xl sm:text-5xl font-bold text-gold-gradient mb-4">
+                        <h1 className="font-ancient text-4xl sm:text-6xl text-[#3d2b1f] mb-6 leading-tight text-center">
                             {event.name}
                         </h1>
 
+                        <div className="w-24 h-[1px] bg-manthan-maroon/20 mx-auto mb-10" />
+
                         {/* Description */}
-                        <p className="text-gray-300 text-lg leading-relaxed mb-8">{event.description}</p>
+                        <p className="font-serif italic text-[#5c4033] text-xl leading-relaxed mb-12 text-center">{event.description}</p>
 
                         {/* Details Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                            <div className="flex items-center space-x-3 p-4 rounded-lg bg-manthan-black/50 border border-manthan-gold/10">
-                                <Calendar size={20} className="text-manthan-gold" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
+                            <div className="flex items-center space-x-4 p-5 rounded-xl border border-manthan-maroon/10 bg-black/5">
+                                <Calendar size={24} className="text-manthan-maroon" />
                                 <div>
-                                    <p className="text-xs text-gray-500">Date & Time</p>
-                                    <p className="text-gray-200 text-sm">{formatDateTime(event.event_date)}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60">Chronicle Date</p>
+                                    <p className="text-[#3d2b1f] font-ancient font-bold">{formatDateTime(event.event_date)}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-3 p-4 rounded-lg bg-manthan-black/50 border border-manthan-gold/10">
-                                <MapPin size={20} className="text-manthan-gold" />
+                            <div className="flex items-center space-x-4 p-5 rounded-xl border border-manthan-maroon/10 bg-black/5">
+                                <MapPin size={24} className="text-manthan-maroon" />
                                 <div>
-                                    <p className="text-xs text-gray-500">Venue</p>
-                                    <p className="text-gray-200 text-sm">{event.venue}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60">The Arena</p>
+                                    <p className="text-[#3d2b1f] font-ancient font-bold">{event.venue}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-3 p-4 rounded-lg bg-manthan-black/50 border border-manthan-gold/10">
-                                <Users size={20} className="text-manthan-gold" />
+                            <div className="flex items-center space-x-4 p-5 rounded-xl border border-manthan-maroon/10 bg-black/5">
+                                <Users size={24} className="text-manthan-maroon" />
                                 <div>
-                                    <p className="text-xs text-gray-500">Team Size</p>
-                                    <p className="text-gray-200 text-sm">{teamInfo}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60">Fellowship</p>
+                                    <p className="text-[#3d2b1f] font-ancient font-bold">{teamInfo}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-3 p-4 rounded-lg bg-manthan-black/50 border border-manthan-gold/10">
-                                <IndianRupee size={20} className="text-manthan-gold" />
+                            <div className="flex items-center space-x-4 p-5 rounded-xl border border-manthan-maroon/10 bg-black/5">
+                                <IndianRupee size={24} className="text-manthan-maroon" />
                                 <div>
-                                    <p className="text-xs text-gray-500">Registration Fee</p>
-                                    <p className="text-gray-200 text-sm font-bold">{formatFee(event.fee)}</p>
-                                    {event.fee_calculation && (
-                                        <p className="text-gray-500 text-xs">
-                                            {event.fee_calculation === 'per_participant' ? 'Per participant' : 'Per team'}
-                                        </p>
-                                    )}
+                                    <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60">Entrance Fee</p>
+                                    <p className="text-[#3d2b1f] font-ancient font-bold">{formatFee(event.fee)}</p>
                                 </div>
                             </div>
                         </div>
 
-                        {(event.prize_text || event.prize_winner || event.prize_runner_up || event.prize_second_runner_up || event.registration_deadline) && (
-                            <div className="mb-8 rounded-lg border border-manthan-gold/10 bg-manthan-black/40 p-5">
-                                <h2 className="font-heading text-xl font-bold text-manthan-gold mb-3">Prizes & Deadlines</h2>
-                                {event.prize_text && <p className="text-gray-300 text-sm mb-3">{event.prize_text}</p>}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
+                        {(event.prize_text || event.prize_winner || event.prize_runner_up) && (
+                            <div className="mb-12 p-8 border border-manthan-maroon/10 bg-manthan-maroon/5 rounded-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Sparkles size={48} className="text-manthan-maroon" />
+                                </div>
+                                <h2 className="font-ancient text-2xl text-manthan-maroon mb-6">Bounties of Victory</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                     {event.prize_winner && (
-                                        <div>
-                                            <p className="text-gray-500 text-xs">Winner</p>
-                                            <p className="text-manthan-gold font-semibold">{formatFee(event.prize_winner)}</p>
+                                        <div className="p-4 bg-white/50 rounded-xl border border-manthan-maroon/5">
+                                            <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60 mb-1">Champion</p>
+                                            <p className="text-2xl font-ancient text-[#3d2b1f]">{formatFee(event.prize_winner)}</p>
                                         </div>
                                     )}
                                     {event.prize_runner_up && (
-                                        <div>
-                                            <p className="text-gray-500 text-xs">Runner-up</p>
-                                            <p className="text-manthan-gold font-semibold">{formatFee(event.prize_runner_up)}</p>
-                                        </div>
-                                    )}
-                                    {event.prize_second_runner_up && (
-                                        <div>
-                                            <p className="text-gray-500 text-xs">Second Runner-up</p>
-                                            <p className="text-manthan-gold font-semibold">{formatFee(event.prize_second_runner_up)}</p>
+                                        <div className="p-4 bg-white/50 rounded-xl border border-manthan-maroon/5">
+                                            <p className="text-[10px] uppercase tracking-widest text-manthan-maroon/60 mb-1">Noble Rival</p>
+                                            <p className="text-2xl font-ancient text-[#3d2b1f]">{formatFee(event.prize_runner_up)}</p>
                                         </div>
                                     )}
                                 </div>
-                                {event.registration_deadline && (
-                                    <p className="text-gray-400 text-xs">
-                                        Registration closes: {formatDateTime(event.registration_deadline)}
-                                    </p>
-                                )}
+                                {event.prize_text && <p className="mt-6 text-sm italic text-[#5c4033]">{event.prize_text}</p>}
                             </div>
                         )}
 
-                        {/* Spots Left */}
-                        <div className="mb-8">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm text-gray-400">Spots Remaining</span>
-                                <span className={`text-sm font-bold ${spotsLeft < 20 ? 'text-manthan-crimson' : 'text-manthan-gold'}`}>
-                                    {spotsLeft} / {event.max_participants}
-                                </span>
-                            </div>
-                            <div className="w-full h-2 bg-manthan-black/50 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-manthan-gold to-manthan-crimson rounded-full transition-all"
-                                    style={{ width: `${(event.current_participants / event.max_participants) * 100}%` }}
-                                />
-                            </div>
-                        </div>
-
                         {/* Rules */}
                         {event.rules && event.rules.length > 0 && (
-                            <div className="mb-8">
-                                <h2 className="font-heading text-xl font-bold text-manthan-gold mb-4">Rules & Guidelines</h2>
-                                <ul className="space-y-2">
+                            <div className="mb-12">
+                                <h2 className="font-ancient text-2xl text-[#3d2b1f] mb-6 border-b border-manthan-maroon/10 pb-4">Laws of the Realm</h2>
+                                <ul className="space-y-4">
                                     {event.rules.map((rule, index) => (
-                                        <li key={index} className="flex items-start text-gray-300 text-sm">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-manthan-gold/50 mr-3 mt-2 flex-shrink-0" />
+                                        <li key={index} className="flex items-start text-[#5c4033] font-serif italic text-lg">
+                                            <span className="w-2 h-2 rounded-full bg-manthan-maroon/30 mr-4 mt-2.5 flex-shrink-0" />
                                             {rule}
                                         </li>
                                     ))}
@@ -183,23 +151,20 @@ export default async function EventDetailPage({
                         )}
 
                         {/* Register CTA */}
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link
-                                href={`/register?event=${event.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 py-4 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-lg text-center text-lg hover:from-manthan-crimson hover:to-manthan-maroon transition-all duration-300 shadow-xl shadow-manthan-maroon/30"
-                            >
-                                Register for {event.name}
+                        <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8 border-t border-manthan-maroon/10">
+                            <Link href={`/register?event=${event.id}`} className="scale-110">
+                                <AnimatedButton icon="sparkles">
+                                    Register Inscriptions
+                                </AnimatedButton>
                             </Link>
                             <Link
                                 href="/events"
-                                className="px-8 py-4 border border-manthan-gold/30 text-manthan-gold font-semibold rounded-lg text-center hover:bg-manthan-gold/10 transition-all duration-300"
+                                className="px-10 py-4 font-ancient text-manthan-maroon uppercase tracking-widest hover:text-black transition-colors"
                             >
-                                Browse All Events
+                                Back to All Realms
                             </Link>
                         </div>
-                    </div>
+                    </ScrollWrapper>
                 </div>
             </main>
             <Footer />

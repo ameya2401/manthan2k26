@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoIntro from './VideoIntro';
 import Chatbot from './Chatbot';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 
@@ -112,6 +113,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     <VideoIntro key="intro" onComplete={() => setIntroComplete(true)} />
                 )}
             </AnimatePresence>
+
+            {/* Global Background Image - Optimized with next/image */}
+            {(introComplete || !isLandingPage) && (
+                <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+                    <Image
+                        src="/bestimg_bg.png"
+                        alt="Background"
+                        fill
+                        priority={false}
+                        className={`object-cover transition-opacity duration-1000 ${bgVideoReady ? 'opacity-25' : 'opacity-10'}`}
+                        sizes="100vw"
+                        quality={75}
+                    />
+                </div>
+            )}
 
             {/* Global Background Video - Lazy loaded, Manual Looping with Fades */}
             <video

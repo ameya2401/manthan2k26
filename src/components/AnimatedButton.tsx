@@ -1,11 +1,20 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { LucideIcon, ChevronRight } from 'lucide-react';
+import { LucideIcon, ChevronRight, Sparkles, ArrowRight, Send } from 'lucide-react';
+
+const icons = {
+    sparkles: Sparkles,
+    'arrow-right': ArrowRight,
+    send: Send,
+    'chevron-right': ChevronRight,
+};
+
+type IconName = keyof typeof icons;
 
 interface AnimatedButtonProps {
     children: ReactNode;
-    icon?: LucideIcon;
+    icon?: LucideIcon | IconName;
     onClick?: () => void;
     className?: string;
     type?: 'button' | 'submit';
@@ -13,12 +22,13 @@ interface AnimatedButtonProps {
 
 export default function AnimatedButton({
     children,
-    icon: Icon,
+    icon,
     onClick,
     className = '',
     type = 'button'
 }: AnimatedButtonProps) {
-    const ActualIcon = Icon || ChevronRight;
+    const IconNode = typeof icon === 'string' ? icons[icon] : icon;
+    const ActualIcon = IconNode || ChevronRight;
 
     return (
         <button
