@@ -22,9 +22,9 @@ const teamMembers = [
     },
     {
         name: 'Aryan Lehgaonkar',
-        role: 'Payments Integration Developer',
-        image: '/profile/aryan.PNG',
-        imageClass: 'object-top scale-[1.25] -translate-y-5 group-hover:scale-[1.3] group-hover:-translate-y-6'
+        role: 'Backend Integration',
+        image: '/profile/aryan 2.png',
+        imageClass: 'object-top scale-[1.2] group-hover:scale-115'
     },
     {
         name: 'Uday Bhoi',
