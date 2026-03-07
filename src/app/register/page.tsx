@@ -326,128 +326,13 @@ function RegisterForm() {
         setStep((s) => Math.max(s - 1, 1));
     };
 
-    // Handle payment
+    // Handle payment - temporarily disabled
     const handlePayment = async () => {
-        if (processing) return;
-        setProcessing(true);
-        setPaymentMessage('');
-        setPaymentError('');
-
-        try {
-            if (!validateBasicInfo() || !validateEvents()) {
-                setProcessing(false);
-                return;
-            }
-
-            if (!razorpayReady || !window.Razorpay) {
-                throw new Error('Payment gateway is still loading. Please try again in a moment.');
-            }
-
-            if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
-                throw new Error('Payment key is not configured. Please contact support.');
-            }
-
-            const teamPayload = selectedEvents
-                .filter((event) => needsTeamDetails(event))
-                .map((event) => {
-                    const team = teamRegistrations[event.id];
-                    return {
-                        event_id: event.id,
-                        team_name: team.team_name?.trim() || null,
-                        team_size: team.team_size,
-                        members: team.members.map((member) => ({
-                            name: member.name,
-                        })),
-                    };
-                });
-
-            const payload = {
-                ...formData,
-                event_ids: selectedIds,
-                team_registrations: teamPayload,
-            };
-
-            const orderResponse = await fetch('/api/payment/create-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const orderData = await orderResponse.json();
-            if (!orderResponse.ok) {
-                throw new Error(orderData.error || 'Failed to create payment order.');
-            }
-
-            const checkout = new window.Razorpay({
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                amount: orderData.order.amount,
-                currency: orderData.order.currency,
-                name: 'Manthan 2026',
-                description: `${selectedIds.length} event registration${selectedIds.length > 1 ? 's' : ''}`,
-                order_id: orderData.order.id,
-                prefill: {
-                    name: formData.name,
-                    email: formData.email,
-                    contact: formData.phone,
-                },
-                notes: {
-                    college: formData.college,
-                },
-                theme: {
-                    color: '#8B0000',
-                },
-                handler: async (response: {
-                    razorpay_order_id: string;
-                    razorpay_payment_id: string;
-                    razorpay_signature: string;
-                }) => {
-                    setProcessing(true);
-                    setPaymentError('');
-
-                    try {
-                        const verifyResponse = await fetch('/api/payment/verify', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(response),
-                        });
-
-                        const verifyData = await verifyResponse.json();
-                        if (!verifyResponse.ok) {
-                            throw new Error(verifyData.error || 'Payment verification failed.');
-                        }
-
-                        setPaymentMessage('Payment verified successfully. Redirecting to your confirmation pass...');
-                        router.push(`/confirmation/${verifyData.ticket_id || orderData.ticket_id}`);
-                    } catch (error: unknown) {
-                        setPaymentError(getErrorMessage(error, 'Payment verification failed.'));
-                    } finally {
-                        setProcessing(false);
-                    }
-                },
-                modal: {
-                    ondismiss: () => {
-                        setPaymentError('Payment was cancelled. You can try again.');
-                        setProcessing(false);
-                    },
-                },
-            });
-
-            checkout.on('payment.failed', (response: { error?: { description?: string } }) => {
-                setPaymentError(response.error?.description || 'Payment failed. Please try again.');
-                setProcessing(false);
-            });
-
-            checkout.open();
-            setProcessing(false);
-        } catch (error: unknown) {
-            setPaymentError(getErrorMessage(error, 'Unable to start payment. Please try again.'));
-            setProcessing(false);
-        }
+        alert('Payments are currently disabled. Please try again later.');
+        return;
     };
+
+
 
     // Animation variants
     const slideVariants = {
