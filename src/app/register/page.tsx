@@ -72,6 +72,11 @@ function estimateEventAmount(event: Event, teamRegistration?: TeamRegistration):
         ? Math.max(1, teamRegistration?.team_size ?? getDefaultTeamSize(event))
         : 1;
 
+    // Special case for Cultural events: Solo 200, Group 400
+    if (event.category === 'cultural' && (event.name === 'NrityaVerse' || event.name === 'SurTarang')) {
+        return teamSize > 1 ? 40000 : 20000;
+    }
+
     return event.fee_calculation === 'per_participant' ? event.fee * teamSize : event.fee;
 }
 
@@ -108,10 +113,8 @@ function RegisterForm() {
     });
     const [teamRegistrations, setTeamRegistrations] = useState<Record<string, TeamRegistration>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [processing, setProcessing] = useState(false);
     const [razorpayReady, setRazorpayReady] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [paymentMessage, setPaymentMessage] = useState('');
     const [paymentError, setPaymentError] = useState('');
     const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -321,10 +324,105 @@ function RegisterForm() {
         setStep((s) => Math.max(s - 1, 1));
     };
 
-    // Handle payment - temporarily disabled
+    // Handle payment
     const handlePayment = async () => {
-        alert('Payments are currently disabled. Please try again later.');
-        return;
+        if (!razorpayReady) {
+            setPaymentError('Payment gateway is still loading. Please wait a moment.');
+            return;
+        }
+
+        setProcessing(true);
+        setPaymentError('');
+        setPaymentMessage('Opening secure portal...');
+
+        try {
+            // 1. Create order on server
+            const res = await fetch('/api/payment/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...formData,
+                    event_ids: selectedIds,
+                    team_registrations: Object.values(teamRegistrations),
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                const errorMessage = data.error || 'Failed to initialize payment.';
+                throw new Error(errorMessage);
+            }
+
+            const { order } = data;
+
+            // 2. Initialize Razorpay Checkout
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                amount: order.amount,
+                currency: order.currency,
+                name: 'Manthan 2K26',
+                description: `Payment for ${selectedIds.length} event(s)`,
+                image: '/logo.png', // Fallback to a placeholder if needed
+                order_id: order.id,
+                handler: async function (response: any) {
+                    setPaymentMessage('Verifying payment...');
+                    try {
+                        const verifyRes = await fetch('/api/payment/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                            }),
+                        });
+
+                        const verifyData = await verifyRes.json();
+                        if (verifyRes.ok) {
+                            setPaymentMessage('Registration successful! Redirecting...');
+                            setTimeout(() => {
+                                window.location.href = `/confirmation/${verifyData.ticket_id}`;
+                            }, 1500);
+                        } else {
+                            throw new Error(verifyData.error || 'Payment verification failed.');
+                        }
+                    } catch (err: any) {
+                        setPaymentError(err.message || 'Verification failed. Please contact support.');
+                        setProcessing(false);
+                    }
+                },
+                prefill: {
+                    name: formData.name,
+                    email: formData.email,
+                    contact: formData.phone,
+                },
+                theme: {
+                    color: '#8B0000', // Manthan Maroon
+                },
+                modal: {
+                    ondismiss: function () {
+                        setProcessing(false);
+                        setPaymentMessage('');
+                        setPaymentError('Payment portal closed. Please try again when ready.');
+                    }
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (response: any) {
+                setPaymentError(`Payment failed: ${response.error.description}`);
+                setProcessing(false);
+                setPaymentMessage('');
+            });
+            rzp.open();
+
+        } catch (err: any) {
+            console.error('Payment Error:', err);
+            setPaymentError(err.message || 'Something went wrong. Please try again.');
+            setProcessing(false);
+            setPaymentMessage('');
+        }
     };
 
 

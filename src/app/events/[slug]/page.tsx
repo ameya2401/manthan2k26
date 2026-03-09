@@ -153,21 +153,6 @@ export default async function EventDetailPage({
                                 </div>
                             )}
 
-                            {/* Spots Left */}
-                            <div className="mb-8">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm text-manthan-maroon/60 font-medium">Spots Remaining</span>
-                                    <span className={`text-sm font-bold ${spotsLeft < 20 ? 'text-manthan-crimson' : 'text-manthan-maroon'}`}>
-                                        {spotsLeft} / {event.max_participants}
-                                    </span>
-                                </div>
-                                <div className="w-full h-2 bg-black/10 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-gradient-to-r from-manthan-maroon to-manthan-crimson rounded-full transition-all"
-                                        style={{ width: `${(event.current_participants / event.max_participants) * 100}%` }}
-                                    />
-                                </div>
-                            </div>
 
                             {/* Rules */}
                             {event.rules && event.rules.length > 0 && (
