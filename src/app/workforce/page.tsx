@@ -10,9 +10,9 @@ const teamMembers = [
     {
         name: 'Riya Thakur',
         role: 'UI/UX Designer & Frontend Developer',
-        image: '/profile/riya-thakur.png',
+        image: '/profile/riya2nobg.png',
         isLead: true,
-        imageClass: 'object-top'
+        imageClass: 'object-center scale-150 group-hover:scale-115'
     },
     {
         name: 'Ameya Bhagat',

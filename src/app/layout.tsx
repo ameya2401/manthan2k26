@@ -15,7 +15,7 @@ export const metadata: Metadata = {
         'Manthan 2026 - The ultimate college tech fest at Bharati Vidyapeeth Belapur, featuring technical, cultural, and sports events. Register now!',
     keywords: ['manthan', 'tech fest', 'college fest', 'hackathon', 'cultural fest', 'BVIMIT', 'Belapur', 'Navi Mumbai'],
     icons: {
-        icon: '/manthan_final_logo.png',
+        icon: '/M_favicon.png',
     },
 };
 

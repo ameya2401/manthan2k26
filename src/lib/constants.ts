@@ -86,6 +86,7 @@ export function formatDate(dateStr: string): string {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
+        timeZone: 'Asia/Kolkata',
     });
 }
 
@@ -94,16 +95,15 @@ export function formatTime(dateStr: string): string {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
+        timeZone: 'Asia/Kolkata',
     });
 }
 
 export function formatDateTime(dateStr: string): string {
-    const time = formatTime(dateStr);
     const date = formatDate(dateStr);
-    if (time === '09:00 am') {
-        return `${date} (09:00 AM - 05:00 PM)`;
-    }
-    return `${date} at ${time}`;
+    // As per user request: "make it 9am to 5pm for every event"
+    // We override logic to show the generalized slot
+    return `${date} (09:00 AM - 05:00 PM)`;
 }
 
 // Calculate total fee server-side (this is the source of truth)
