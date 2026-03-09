@@ -35,7 +35,6 @@ export default async function EventDetailPage({
     }
 
     const colors = categoryColors[event.category] || categoryColors.technical;
-    const spotsLeft = event.max_participants - event.current_participants;
 
     const teamInfo = (() => {
         if (event.team_size_fixed && event.team_size_fixed > 1) {

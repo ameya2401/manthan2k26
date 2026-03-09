@@ -19,11 +19,22 @@ import {
 
 declare global {
     interface Window {
-        Razorpay?: new (options: Record<string, unknown>) => {
-            on: (event: string, handler: (response: { error?: { description?: string } }) => void) => void;
-            open: () => void;
-        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Razorpay?: any;
     }
+}
+
+interface RazorpaySuccessResponse {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+}
+
+interface RazorpayFailureResponse {
+    error: {
+        description: string;
+        code: string;
+    };
 }
 
 
@@ -365,7 +376,7 @@ function RegisterForm() {
                 description: `Payment for ${selectedIds.length} event(s)`,
                 image: '/logo.png', // Fallback to a placeholder if needed
                 order_id: order.id,
-                handler: async function (response: any) {
+                handler: async function (response: RazorpaySuccessResponse) {
                     setPaymentMessage('Verifying payment...');
                     try {
                         const verifyRes = await fetch('/api/payment/verify', {
@@ -387,8 +398,9 @@ function RegisterForm() {
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed.');
                         }
-                    } catch (err: any) {
-                        setPaymentError(err.message || 'Verification failed. Please contact support.');
+                    } catch (err: unknown) {
+                        const message = err instanceof Error ? err.message : 'Verification failed. Please contact support.';
+                        setPaymentError(message);
                         setProcessing(false);
                     }
                 },
@@ -409,17 +421,22 @@ function RegisterForm() {
                 }
             };
 
-            const rzp = new (window as any).Razorpay(options);
-            rzp.on('payment.failed', function (response: any) {
+            if (!window.Razorpay) {
+                throw new Error('Razorpay SDK failed to load. Please refresh the page.');
+            }
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response: RazorpayFailureResponse) {
                 setPaymentError(`Payment failed: ${response.error.description}`);
                 setProcessing(false);
                 setPaymentMessage('');
             });
             rzp.open();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Payment Error:', err);
-            setPaymentError(err.message || 'Something went wrong. Please try again.');
+            const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+            setPaymentError(message);
             setProcessing(false);
             setPaymentMessage('');
         }
