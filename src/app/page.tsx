@@ -5,7 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Clock, MapPin } from 'lucide-react';
+import { useState } from 'react';
+import { scheduleData } from '@/lib/constants';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { IntroContext } from '@/components/ClientLayout';
 import ScrollWrapper from '@/components/ScrollWrapper';
@@ -19,6 +21,7 @@ import 'swiper/css/effect-coverflow';
 export default function HomePage() {
     const { introComplete } = useContext(IntroContext);
     const { scrollYProgress } = useScroll();
+    const [activeDay, setActiveDay] = useState(0);
 
     const heroContentOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
     const events = [
@@ -185,22 +188,94 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                {/* CALL TO ACTION */}
-                <section className="py-16 md:py-24 bg-transparent">
-                    <div className="max-w-4xl mx-auto text-center px-4">
-                        <ScrollWrapper padding="p-8 md:p-12">
-                            <h2 className="font-ancient text-3xl md:text-4xl text-[#3d2b1f] mb-4">Ascend to Legend</h2>
-                            <p className="text-[#5c4033] mb-8 max-w-lg mx-auto italic">
-                                Unleash the spirit of the ancients. The realms of Manthan 2026 await your legend. Scribe your name in the chronicles of history.
-                            </p>
-                            <div className="flex justify-center">
-                                <Link href="/register" className="scale-110">
-                                    <AnimatedButton icon={Sparkles}>
-                                        Register Inscriptions
-                                    </AnimatedButton>
-                                </Link>
+                {/* EVENT SCHEDULE SECTION */}
+                <section id="schedule" className="relative py-20 px-4 md:px-6 overflow-hidden bg-transparent">
+                    <div className="max-w-5xl mx-auto relative z-10">
+                        <div className="text-center mb-16">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                            >
+                                <h3 className="font-ancient text-4xl sm:text-5xl md:text-7xl text-gold-gradient uppercase mb-4">Chronicles of Time</h3>
+                                <p className="font-serif italic text-manthan-gold/60 text-xl">The Sacred Schedule of Manthan</p>
+                            </motion.div>
+                        </div>
+
+                        {/* Day Selector */}
+                        <div className="flex justify-center mb-12">
+                            <div className="flex bg-manthan-gold/5 border border-manthan-gold/20 p-1.5 rounded-full backdrop-blur-sm">
+                                {scheduleData.map((day, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setActiveDay(idx)}
+                                        className={`px-8 py-3 rounded-full font-ancient font-bold text-sm tracking-widest transition-all duration-500 uppercase ${activeDay === idx
+                                            ? 'bg-manthan-gold text-[#1a0a0a] shadow-[0_0_20px_rgba(212,168,55,0.4)]'
+                                            : 'text-manthan-gold/60 hover:text-manthan-gold hover:bg-manthan-gold/10'
+                                            }`}
+                                    >
+                                        Day {idx + 1}
+                                    </button>
+                                ))}
                             </div>
-                        </ScrollWrapper>
+                        </div>
+
+                        {/* Schedule Content */}
+                        <motion.div
+                            key={activeDay}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6 }}
+                            className="space-y-6"
+                        >
+                            <div className="text-center mb-8">
+                                <span className="font-ancient text-2xl text-manthan-gold tracking-widest border-b border-manthan-gold/30 pb-2">
+                                    {scheduleData[activeDay].date}
+                                </span>
+                            </div>
+
+                            <ScrollWrapper padding="p-2 sm:p-4 md:p-8">
+                                <div className="overflow-x-auto custom-scrollbar-thin">
+                                    <table className="w-full text-left border-collapse font-serif text-[#3d2b1f]">
+                                        <thead>
+                                            <tr className="border-b-2 border-manthan-maroon/20">
+                                                <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Time</th>
+                                                <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Chronicle (Event)</th>
+                                                <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Realm (Venue)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-manthan-maroon/10">
+                                            {scheduleData[activeDay].slots.map((slot, index) => (
+                                                <tr key={index} className="hover:bg-manthan-maroon/5 transition-colors group">
+                                                    <td className="py-2 px-2 md:py-4 md:px-4 text-[#3d2b1f] font-bold text-[10px] md:text-sm whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5 md:gap-2">
+                                                            <Clock size={14} className="text-manthan-maroon/60" />
+                                                            {slot.time}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 md:py-4 md:px-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[#1a0a0a] font-ancient font-bold text-xs md:text-lg tracking-wider group-hover:text-manthan-maroon transition-colors line-clamp-2 md:line-clamp-none">
+                                                                {slot.event}
+                                                            </span>
+                                                            <span className="text-manthan-maroon/60 text-[8px] md:text-[10px] uppercase font-ancient tracking-[0.1em] mt-0.5 md:mt-1">
+                                                                {slot.category}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-2 px-2 md:py-4 md:px-4 text-[#5c4033] italic text-[10px] md:text-sm whitespace-normal md:whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5 md:gap-2">
+                                                            <MapPin size={14} className="text-manthan-maroon/60" />
+                                                            {slot.venue}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </ScrollWrapper>
+                        </motion.div>
                     </div>
                 </section>
             </main>

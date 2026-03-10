@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Bot, User, ChevronDown } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Sparkles } from 'lucide-react';
 
 interface Message {
     id: string;
@@ -14,59 +15,59 @@ interface Message {
 
 const FAQS = [
     {
-        keywords: ['manthan', 'what', 'fest', 'about'],
-        answer: "Manthan 2026 is our college's premier Technical and Cultural extravaganza. It's a platform where 'Roots meet Realms', showcasing the best of innovation, creativity, and talent across multiple domains.",
-        options: ['Technical Events', 'Cultural Events', 'Sports Events', 'Registration']
+        keywords: ['manthan', 'what', 'fest', 'about', 'meaning'],
+        answer: "Manthan 2026 is BVIMIT’s premier Intercollegiate Technical, Cultural, and Sports festival. Inspired by 'Samudra Manthan', it symbolizes the churning of ideas to bring forth excellence. Our theme, 'Roots meet Realms', celebrates our heritage while embracing the future.",
+        options: ['Technical Events', 'Cultural Events', 'Sports Events', 'Schedule']
     },
     {
-        keywords: ['explore events', 'view events', 'event categories', 'events & categories', 'events'],
-        answer: "We have events across three categories: Technical, Cultural, and Sports. Which one would you like to explore?",
+        keywords: ['explore events', 'view events', 'event categories', 'events'],
+        answer: "We have a thrilling lineup for 2026:\n• TECHNICAL: Prompt2Website, TypeSprint, QuizStorm, CanvaCraft\n• CULTURAL: NrityaVerse (Dance), SurTarang (Singing)\n• SPORTS: Cricket, Volleyball, Badminton, BGMI, Fitness & Board Games",
         options: ['Technical Events', 'Cultural Events', 'Sports Events']
     },
     {
         keywords: ['technical events', 'technical'],
-        answer: "Our Technical lineup features:\n• Prompt2Website: The Vibe Coding Challenge\n• TypeSprint: The Ultimate Typing Showdown\n• QuizStorm: Battle of Brains\n• CanvaCraft: Poster Design challenge",
+        answer: "Sharpen your intellect at our Tech Arena:\n• Prompt2Website: AI Website Building challenge\n• TypeSprint: The Ultimate Typing Showdown\n• QuizStorm: Battle of Brains\n• CanvaCraft: Poster Design challenge",
         options: ['Prompt2Website', 'TypeSprint', 'QuizStorm', 'Registration']
     },
     {
         keywords: ['cultural events', 'cultural'],
-        answer: "Get ready for Cultural magic:\n• NrityaVerse: The Dance Extravaganza\n• SurTarang: The Singing Showdown",
+        answer: "Experience the magic of performance:\n• NrityaVerse: Dance competition (Solo/Group)\n• SurTarang: Singing competition (Solo/Group)\nHeld on the Main Stage and Seminar Hall.",
         options: ['NrityaVerse', 'SurTarang', 'Registration']
     },
     {
-        keywords: ['sports events', 'sports'],
-        answer: "Fuel your competitive spirit with:\n• Cricket\n• Volleyball\n• Indoor Games (Chess, Carrom, etc.)",
-        options: ['Cricket', 'Volleyball', 'Indoor Games', 'Registration']
-    },
-    {
-        keywords: ['prompt2website', 'typesprint', 'quizstorm', 'canvacraft', 'nrityaverse', 'surtarang', 'cricket', 'volleyball', 'indoor games'],
-        answer: "Great choice! This event will test your skills and passion. Ready to join the battle?",
-        options: ['Registration Now', 'View More Events', 'Main Menu']
+        keywords: ['sports events', 'sports', 'games'],
+        answer: "Fuel your competitive spirit:\n• Outdoor: Box Cricket, Volleyball, Badminton, Tug of War\n• Indoor: Chess, Carrom, Ludo\n• Fitness: Deadlift, Bench Press\n• E-Sports: BGMI Squad Battle",
+        options: ['Box Cricket', 'BGMI', 'Badminton', 'Registration']
     },
     {
         keywords: ['registration', 'register', 'how to register', 'sign up'],
-        answer: "Registration is open! Click the button below to head to the registration portal and secure your spot in Manthan 2026.",
+        answer: "Registration is simple!\n1. Explore the 'Events' section.\n2. Click 'Register Inscriptions'.\n3. Fill in your details and complete the secure payment.\nEnsure you have your College ID ready!",
         options: ['Go to Registration', 'Main Menu']
     },
     {
-        keywords: ['fee', 'payment', 'cost'],
-        answer: "Fees vary by event and team size. You'll see the exact amount on the registration portal before confirming.",
+        keywords: ['fee', 'payment', 'cost', 'price'],
+        answer: "Fees vary by event:\n• Technical: ₹50 - ₹80\n• Cultural: ₹200 (Solo) / ₹400 (Group)\n• Sports: Vary by team size (e.g., Cricket ₹950/team)\nCheck the specific event details on the registration portal.",
         options: ['Registration', 'Contact Support']
     },
     {
-        keywords: ['venue', 'location', 'address'],
-        answer: "Manthan 2026 is at BVIMIT, Belapur, Navi Mumbai. It's easily accessible via Belapur railway station.",
+        keywords: ['venue', 'location', 'address', 'where'],
+        answer: "Manthan 2026 takes place at BVIMIT, Plot No. 3, Sector 7, Belapur, Navi Mumbai. Located right across from the Belapur Railway Station.\nSpecific arenas include the Main Stage, E-Sports Arena, and Fitness Hall.",
         options: ['Get Directions', 'Main Menu']
     },
     {
-        keywords: ['contact', 'help', 'support'],
-        answer: "Need direct help? Contact us at 022-27578415 or principal.bvimit@bharatividyapeeth.edu",
+        keywords: ['schedule', 'time', 'date', 'dates', 'when'],
+        answer: "The Chronicles of Manthan unfold over two days:\n• Day 1 (March 24th): Technical & Sports Prelims\n• Day 2 (March 25th): Cultural Main Stage & Grand Finale\nEvents generally run from 9:00 AM to 5:00 PM.",
+        options: ['Full Schedule', 'View Events']
+    },
+    {
+        keywords: ['contact', 'help', 'support', 'organizers', 'coordinator'],
+        answer: "Need help from the scribes? \n• Phone: 022-27578415\n• Email: principal.bvimit@bharatividyapeeth.edu\n• Location: Desk 1, BVIMIT Main Building",
         options: ['Call Now', 'Email Now', 'Main Menu']
     },
     {
         keywords: ['main menu', 'hi', 'hello', 'hey', 'start', 'help'],
-        answer: "Welcome to Manthan 2026! How can I help you today?",
-        options: ['About Manthan', 'Explore Events', 'Registration', 'Venue & Contact']
+        answer: "Greetings, seeker! I am the Manthan Oracle. How shall I assist you in your journey through the realms today?",
+        options: ['About Manthan', 'Explore Events', 'Registration', 'Venue & Schedule']
     }
 ];
 
@@ -109,8 +110,8 @@ export default function Chatbot() {
         // Process Bot Response
         setTimeout(() => {
             const query = messageText.toLowerCase();
-            let responseText = "Sorry, I can only help with Manthan Fest related queries. Please ask about events, registration, fees, venue, or schedule.";
-            let options: string[] | undefined = ['About Manthan', 'Explore Events', 'Contact Us'];
+            let responseText = "Greetings Seeker! My wisdom is limited to the realms of Manthan. Perhaps you wish to ask about our events, registration processes, the sacred schedule, or our sanctuary's location?";
+            let options: string[] | undefined = ['About Manthan', 'Explore Events', 'Venue & Schedule'];
 
             for (const faq of FAQS) {
                 if (faq.keywords.some(keyword => query.includes(keyword))) {
@@ -133,66 +134,84 @@ export default function Chatbot() {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-[90]">
+        <div className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-[1001] flex flex-col items-end">
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 50, scale: 0.9, originY: 'bottom', originX: 'right' }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="mb-4 w-[320px] sm:w-[380px] h-[500px] bg-[#0a0a0a] border border-manthan-gold/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl"
+                        exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="w-full h-[100dvh] sm:h-[600px] sm:w-[400px] shadow-2xl flex flex-col overflow-hidden relative sm:rounded-2xl parchment-theme sm:mb-4"
+                        style={{ perspective: '1000px' }}
                     >
-                        {/* Header */}
-                        <div className="p-4 bg-gradient-to-r from-manthan-maroon to-manthan-dark border-b border-manthan-gold/10 flex items-center justify-between">
+                        {/* Ancient Header */}
+                        <div className="p-4 bg-[#3d2b1f] border-b-2 border-manthan-gold flex items-center justify-between relative z-20">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-manthan-gold/10 border border-manthan-gold/30 flex items-center justify-center">
-                                    <Bot size={18} className="text-manthan-gold" />
+                                <div className="relative w-10 h-10 shrink-0">
+                                    <Image
+                                        src="/bbbg-removebg-preview.png"
+                                        alt="Manthan Logo"
+                                        fill
+                                        className="object-contain drop-shadow-[0_0_8px_rgba(212,168,55,0.4)]"
+                                    />
                                 </div>
                                 <div>
-                                    <h3 className="text-white text-sm font-bold tracking-wide uppercase">Manthan AI</h3>
+                                    <h3 className="text-manthan-gold text-sm font-ancient font-bold tracking-[0.15em] uppercase">The Scribe</h3>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[10px] text-gray-400">Online</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-manthan-gold animate-pulse shadow-[0_0_8px_rgba(212,168,55,0.8)]" />
+                                        <span className="text-[10px] text-manthan-gold/60 font-serif italic uppercase tracking-wider">Present</span>
                                     </div>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="text-gray-400 hover:text-white transition-colors"
+                                className="text-manthan-gold/50 hover:text-manthan-gold transition-colors p-2 hover:bg-white/5 rounded-full"
                             >
-                                <X size={20} />
+                                <X size={26} />
                             </button>
                         </div>
 
-                        {/* Messages Area */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                        {/* Parchment Body */}
+                        <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar relative bg-[#f4e4bc] text-[#3d2b1f] font-serif shadow-inner">
+                            {/* Ink Stains/Texture effect */}
+                            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/old-mathematics.png')] mix-blend-multiply" />
+
                             {messages.map((msg) => (
                                 <div
                                     key={msg.id}
-                                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                                 >
-                                    <div className={`flex flex-col gap-2 max-w-[85%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
-                                        <div className={`flex gap-2.5 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                            <div className={`w-7 h-7 rounded-sm flex items-center justify-center shrink-0 mt-1 ${msg.sender === 'user' ? 'bg-manthan-gold/10' : 'bg-manthan-maroon/20'
+                                    <div className={`flex flex-col gap-2.5 max-w-[88%] ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                                        <div className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                            <div className={`w-8 h-8 rounded-sm rotate-3 flex items-center justify-center shrink-0 mt-1 shadow-md ${msg.sender === 'user' ? 'bg-[#3d2b1f]' : 'bg-manthan-maroon'
                                                 }`}>
-                                                {msg.sender === 'user' ? <User size={14} className="text-manthan-gold" /> : <Bot size={14} className="text-manthan-maroon" />}
+                                                {msg.sender === 'user' ? <User size={16} className="text-manthan-gold" /> : <Bot size={16} className="text-manthan-gold" />}
                                             </div>
-                                            <div className={`p-3 rounded-xl text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${msg.sender === 'user'
-                                                ? 'bg-manthan-gold/10 text-gray-200 rounded-tr-none'
-                                                : 'bg-white/5 text-gray-300 rounded-tl-none border border-white/5'
+                                            <div className={`p-4 rounded-lg text-sm leading-relaxed relative ${msg.sender === 'user'
+                                                ? 'bg-[#3d2b1f] text-manthan-gold shadow-lg rounded-tr-none -rotate-1'
+                                                : 'bg-[#ede0c8] text-[#2c1e0f] shadow-md rounded-tl-none border-l-4 border-manthan-maroon/20 rotate-1'
                                                 }`}>
-                                                {msg.text}
+                                                <div className="relative z-10 font-medium">
+                                                    {msg.text}
+                                                </div>
+                                                {/* Wax Seal effect for bot */}
+                                                {msg.sender === 'bot' && (
+                                                    <div className="absolute -bottom-2 -right-2 opacity-20 transform -rotate-12 pointer-events-none">
+                                                        <Sparkles size={24} className="text-manthan-maroon" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Predefined Buttons */}
+                                        {/* Ancient Response Options */}
                                         {msg.sender === 'bot' && msg.options && (
-                                            <div className="flex flex-wrap gap-2 mt-1 ml-9">
+                                            <div className="flex flex-wrap gap-2.5 mt-2 ml-11">
                                                 {msg.options.map((option) => (
                                                     <button
                                                         key={option}
                                                         onClick={() => handleSend(option)}
-                                                        className="px-3 py-1.5 rounded-full bg-manthan-gold/5 border border-manthan-gold/20 text-[10px] sm:text-xs text-manthan-gold hover:bg-manthan-gold/10 hover:border-manthan-gold/40 transition-all duration-300"
+                                                        className="px-4 py-2 rounded-md bg-[#3d2b1f]/5 border border-[#3d2b1f]/20 text-[11px] font-ancient font-bold text-[#3d2b1f] hover:bg-manthan-maroon hover:text-manthan-gold hover:border-manthan-maroon transition-all duration-500 shadow-sm uppercase tracking-widest"
                                                     >
                                                         {option}
                                                     </button>
@@ -205,23 +224,27 @@ export default function Chatbot() {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Input Area */}
-                        <div className="p-4 border-t border-white/5 bg-manthan-black">
-                            <div className="relative flex items-center">
-                                <input
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                                    placeholder="Ask about events, registration..."
-                                    className="w-full bg-white/[0.03] border border-white/10 rounded-full py-2.5 pl-4 pr-12 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-manthan-gold/30 transition-all font-body"
-                                />
+                        {/* Input Area (Inkwell Style) */}
+                        <div className="p-5 bg-[#3d2b1f] border-t-2 border-manthan-gold relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-manthan-gold to-transparent" />
+                            <div className="relative flex items-center gap-3">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                        placeholder="Scribe your query here..."
+                                        className="w-full bg-[#f4e4bc]/10 border border-manthan-gold/30 rounded-lg py-3 pl-4 pr-12 text-sm text-manthan-gold placeholder:text-manthan-gold/30 focus:outline-none focus:border-manthan-gold/60 focus:bg-[#f4e4bc]/20 transition-all font-serif"
+                                    />
+                                    <div className="absolute bottom-1 right-12 w-8 h-[2px] bg-manthan-gold/20 scale-x-0 group-focus-within:scale-x-100 transition-transform origin-left" />
+                                </div>
                                 <button
                                     onClick={() => handleSend()}
                                     disabled={!input.trim()}
-                                    className="absolute right-1.5 p-2 text-manthan-gold hover:text-manthan-gold-light disabled:opacity-30 disabled:hover:text-manthan-gold transition-all"
+                                    className="p-3 bg-manthan-gold text-[#3d2b1f] rounded-lg hover:bg-manthan-gold-light disabled:opacity-20 disabled:grayscale transition-all shadow-[0_4px_10px_rgba(212,168,55,0.3)] active:scale-95"
                                 >
-                                    <Send size={18} />
+                                    <Send size={20} className="transform -rotate-12" />
                                 </button>
                             </div>
                         </div>
@@ -229,16 +252,27 @@ export default function Chatbot() {
                 )}
             </AnimatePresence>
 
-            {/* Floating Button */}
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 rounded-full bg-gradient-to-tr from-manthan-maroon to-manthan-crimson border border-manthan-gold/30 shadow-2xl flex items-center justify-center text-manthan-gold group overflow-hidden relative"
-            >
-                <div className="absolute inset-0 bg-manthan-gold/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                {isOpen ? <ChevronDown size={28} /> : <MessageSquare size={26} />}
-            </motion.button>
+            <AnimatePresence>
+                {!isOpen && (
+                    <motion.button
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsOpen(true)}
+                        className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-tr from-[#3d2b1f] to-manthan-maroon border-2 border-manthan-gold/50 shadow-[0_0_25px_rgba(212,168,55,0.3)] flex items-center justify-center text-manthan-gold group overflow-hidden relative mr-6 mb-6 sm:mr-0 sm:mb-0"
+                    >
+                        <div className="absolute inset-0 bg-manthan-gold/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <MessageSquare size={28} />
+                        <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="absolute -top-1 -right-1 w-4 h-4 bg-manthan-gold rounded-full border-2 border-[#3d2b1f]"
+                        />
+                    </motion.button>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
