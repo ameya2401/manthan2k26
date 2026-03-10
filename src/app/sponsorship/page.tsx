@@ -24,15 +24,6 @@ const sponsors = [
         ]
     },
     {
-        tier: 'Technology Partners',
-        icon: Zap,
-        items: [
-            { id: 1, name: 'MongoDB', logo: 'https://upload.wikimedia.org/wikipedia/en/4/45/MongoDB-Logo.svg' },
-            { id: 2, name: 'Vercel', logo: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Vercel_logo_black.svg' },
-            { id: 3, name: 'Postman', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c2/Postman_%28software%29.png' }
-        ]
-    },
-    {
         tier: 'Associate Partners',
         icon: ShieldCheck,
         items: [
