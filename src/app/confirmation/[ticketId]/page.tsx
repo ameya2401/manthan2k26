@@ -45,9 +45,29 @@ export default function ConfirmationPage() {
         if (ticketId) fetchData();
     }, [ticketId]);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
+        const fetchLogoAsBase64 = async (url: string) => {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            } catch (err) {
+                console.error('Logo load error:', err);
+                return url;
+            }
+        };
+
+        const [logoL, logoR] = await Promise.all([
+            fetchLogoAsBase64('/manthan_final_logo2.png'),
+            fetchLogoAsBase64('/bbbg-removebg-preview.png')
+        ]);
+
         const printWindow = window.open('', '_blank');
-        if (!printWindow || !passRef.current) return;
+        if (!printWindow) return;
 
         printWindow.document.write(`
       <!DOCTYPE html>
@@ -56,71 +76,211 @@ export default function ConfirmationPage() {
         <title>Manthan 2026 - Entry Pass - ${registration?.ticket_id}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Georgia', serif; background: #fdf5e6; color: #3d2b1f; padding: 40px; }
-          .pass { max-width: 500px; margin: 0 auto; background: #fdf5e6; border: 2px solid #3d2b1f; border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0 L100 0 L100 100 L0 100 Z' fill='none' stroke='%233d2b1f' stroke-width='2'/%3E%3C/svg%3E") 30 stretch; padding: 40px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-          .pass::before, .pass::after { content: ''; position: absolute; left: -10px; right: -10px; height: 15px; background: #3d2b1f; border-radius: 10px; opacity: 0.8; }
-          .pass::before { top: -8px; }
-          .pass::after { bottom: -8px; }
-          .logo-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; width: 100%; }
-          .side-logo { width: 60px; height: auto; object-fit: contain; }
-          .header { text-align: center; border-bottom: 1px solid rgba(61,43,31,0.1); padding-bottom: 25px; margin-bottom: 25px; position: relative; }
-          .title { font-size: 32px; color: #3d2b1f; font-weight: bold; letter-spacing: 6px; text-transform: uppercase; }
-          .subtitle { color: #8B0000; font-size: 14px; margin-top: 6px; font-style: italic; }
-          .ticket-id { font-size: 20px; color: #3d2b1f; font-weight: bold; margin: 20px 0; letter-spacing: 3px; border: 1px dashed #3d2b1f; display: inline-block; padding: 8px 16px; }
-          .status { display: block; margin-top: 10px; color: #2e7d32; font-weight: bold; font-size: 12px; }
-          .qr { text-align: center; margin: 30px 0; }
-          .qr img { width: 220px; height: 220px; border: 8px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-          .details { margin: 25px 0; }
-          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(61,43,31,0.05); font-size: 14px; }
-          .detail-label { color: #5c4033; opacity: 0.7; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-          .detail-value { color: #3d2b1f; font-weight: 600; }
-          .events-list { margin: 25px 0; text-align: left; }
-          .events-title { font-weight: bold; color: #8B0000; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
-          .event-item { padding: 10px 15px; border-left: 3px solid #8B0000; margin-bottom: 8px; font-size: 14px; background: rgba(139,0,0,0.03); }
-          .total { text-align: right; font-size: 22px; color: #8B0000; font-weight: bold; margin-top: 20px; border-top: 2px solid #3d2b1f; padding-top: 15px; }
-          .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(61,43,31,0.1); color: #5c4033; font-size: 12px; font-style: italic; }
-          @media print { body { background: white; padding: 0; } .pass { box-shadow: none; border-color: black; } }
+          body { 
+            font-family: 'Georgia', serif; 
+            background: #0a0a0a; 
+            color: #ffffff; 
+            padding: 0; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            width: 100vw; 
+          }
+          .pass { 
+            width: 100%; 
+            max-width: 480px; 
+            background: #0a0a0a; 
+            border: 3px solid #D4AF37; 
+            padding: 30px; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+          }
+          .pass::before, .pass::after { 
+            content: ''; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            height: 10px; 
+            background: #8B0000; 
+            z-index: 10;
+          }
+          .pass::before { top: 0; }
+          .pass::after { bottom: 0; }
+
+          .logo-container { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+          }
+          .side-logo { 
+            width: 60px; 
+            height: 60px; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+          }
+          
+          .header { 
+            text-align: center; 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3); 
+            padding-bottom: 20px; 
+            margin-bottom: 20px; 
+          }
+          .title { 
+            font-size: 32px; 
+            color: #D4AF37 !important; 
+            font-weight: bold; 
+            letter-spacing: 5px; 
+            text-transform: uppercase; 
+          }
+          .subtitle { 
+            color: #8B0000 !important; 
+            font-size: 13px; 
+            margin-top: 5px; 
+            font-style: italic; 
+            font-weight: bold; 
+          }
+          .ticket-id { 
+            font-size: 18px; 
+            color: #ffffff !important; 
+            font-weight: bold; 
+            margin: 15px 0; 
+            letter-spacing: 2px; 
+            border: 2px dashed rgba(212, 175, 55, 0.5); 
+            display: inline-block; 
+            padding: 8px 16px; 
+            background: rgba(212, 175, 55, 0.1); 
+          }
+          .status { 
+            display: block; 
+            margin-top: 8px; 
+            color: #4ade80 !important; 
+            font-weight: bold; 
+            font-size: 11px; 
+            letter-spacing: 1px;
+          }
+          .qr { 
+            text-align: center; 
+            margin: 25px 0; 
+          }
+          .qr .qr-bg {
+            background: white;
+            padding: 12px;
+            display: inline-block;
+            border-radius: 8px;
+          }
+          .qr img { 
+            width: 180px; 
+            height: 180px; 
+            display: block;
+          }
+          .details { margin: 20px 0; }
+          .detail-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1); 
+            font-size: 14px; 
+          }
+          .detail-label { 
+            color: rgba(212, 175, 55, 0.8) !important; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-weight: bold; 
+          }
+          .detail-value { 
+            color: #ffffff !important; 
+            font-weight: 700; 
+          }
+          .events-list { margin: 20px 0; text-align: left; }
+          .events-title { 
+            font-weight: bold; 
+            color: #8B0000 !important; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            margin-bottom: 10px; 
+            border-left: 3px solid #8B0000;
+            padding-left: 8px;
+          }
+          .event-item { 
+            padding: 10px 12px; 
+            margin-bottom: 6px; 
+            font-size: 14px; 
+            background: rgba(255, 255, 255, 0.05); 
+            border-radius: 6px; 
+          }
+          .total { 
+            text-align: right; 
+            font-size: 22px; 
+            color: #D4AF37 !important; 
+            font-weight: bold; 
+            margin-top: 15px; 
+            border-top: 2px solid #8B0000; 
+            padding-top: 10px; 
+          }
+          .footer { 
+            text-align: center; 
+            margin-top: 25px; 
+            padding-top: 20px; 
+            border-top: 1px solid rgba(212, 175, 55, 0.2); 
+            color: rgba(255,255,255,0.4) !important; 
+            font-size: 11px; 
+            font-style: italic; 
+          }
+          @media print { 
+            @page { margin: 0; size: auto; }
+            html, body { height: 100%; width: 100%; margin: 0; padding: 0; background: #0a0a0a !important; color-adjust: exact; -webkit-print-color-adjust: exact; }
+            body { display: flex; justify-content: center; align-items: center; }
+            .pass { margin: 0; box-shadow: none; border-color: #D4AF37 !important; background: #0a0a0a !important; }
+            * { color-adjust: exact; -webkit-print-color-adjust: exact; }
+          }
         </style>
       </head>
       <body>
         <div class="pass">
           <div class="logo-container">
-            <img src="/manthan_final_logo2.png" class="side-logo" alt="Logo L" />
-            <img src="/bbbg-removebg-preview.png" class="side-logo" alt="Logo R" />
+            <img src="${logoL}" class="side-logo" alt="Logo L" />
+            <img src="${logoR}" class="side-logo" alt="Logo R" />
           </div>
           <div class="header">
             <div class="title">MANTHAN</div>
             <div class="subtitle">2026 • Festival of Ancient Wisdom</div>
             <div class="ticket-id">${registration?.ticket_id}</div>
-            <div class="status">VERIFIED • PAID</div>
+            <div class="status">VERIFIED • PAID ENTRY</div>
           </div>
           <div class="qr">
-            <img src="${registration?.qr_code}" alt="Portal Key" />
-            <div style="color:#5c4033;font-size:11px;margin-top:10px;text-transform:uppercase;letter-spacing:1px;">The Key to the Archives</div>
+            <div class="qr-bg">
+              <img src="${registration?.qr_code}" alt="Pass QR" />
+            </div>
+            <div style="color:rgba(212,175,55,0.7);font-size:10px;margin-top:10px;text-transform:uppercase;letter-spacing:2px;font-weight:bold;">Entry Pass ID</div>
           </div>
           <div class="details">
-            <div class="detail-row"><span class="detail-label">Chronicler</span><span class="detail-value">${registration?.name}</span></div>
-            <div class="detail-row"><span class="detail-label">Codex</span><span class="detail-value">${registration?.email}</span></div>
+            <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${registration?.name}</span></div>
+            <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">${registration?.email}</span></div>
             <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value">${registration?.phone}</span></div>
-            <div class="detail-row"><span class="detail-label">Guild</span><span class="detail-value">${registration?.college}</span></div>
-            <div class="detail-row"><span class="detail-label">Payment ID</span><span class="detail-value">${registration?.razorpay_payment_id || 'CASH_ENTRY'}</span></div>
+            <div class="detail-row"><span class="detail-label">College</span><span class="detail-value">${registration?.college}</span></div>
           </div>
           <div class="events-list">
-            <div class="events-title">Inscribed Trials</div>
+            <div class="events-title">Registered Events</div>
             ${events.map((e) => `
               <div class="event-item">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <div style="font-weight:bold;">${e.name}</div>
-                  <div style="font-size:10px; opacity:0.8;">${e.event_date ? formatDate(e.event_date) : '24-25 Mar'}</div>
+                  <div style="font-weight:bold; color:#ffffff;">${e.name}</div>
+                  <div style="font-size:10px; color:rgba(212,175,55,0.7);">${e.event_date ? formatDate(e.event_date) : '24-25 Mar'}</div>
                 </div>
-                <div style="font-size:11px;opacity:0.7;margin-top:2px;">${e.venue || 'The Great Arena'}</div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:2px;">${e.venue || 'The Great Arena'}</div>
               </div>
             `).join('')}
           </div>
-          <div class="total">Offerings: ${registration ? formatFee(registration.total_amount) : ''}</div>
+          <div class="total">Total: ${registration ? formatFee(registration.total_amount) : ''}</div>
           <div class="footer">
             <p>24th - 25th of March, 2026</p>
-            <p style="margin-top:4px;">Inscribed in the permanent scrolls of the Realm.</p>
+            <p style="margin-top:4px;">Official Entry Permission for Manthan 2026</p>
           </div>
         </div>
       </body>
@@ -208,12 +368,12 @@ export default function ConfirmationPage() {
 
                                 <div className="mt-8 flex flex-col items-center">
                                     <div className="border border-dashed border-[#3d2b1f] px-6 py-3 relative">
-                                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#f4e4bc] px-2 text-[8px] text-manthan-maroon font-bold font-ancient uppercase tracking-widest whitespace-nowrap">Scroll ID</span>
+                                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#f4e4bc] px-2 text-[8px] text-manthan-maroon font-bold font-ancient uppercase tracking-widest whitespace-nowrap">Pass ID</span>
                                         <span className="font-ancient text-[#3d2b1f] text-2xl font-bold tracking-widest">
                                             {registration.ticket_id}
                                         </span>
                                     </div>
-                                    <span className="mt-4 px-4 py-1.5 bg-[#2e7d32]/10 text-[#2e7d32] text-[10px] font-bold rounded-full font-ancient uppercase tracking-widest border border-[#2e7d32]/20">
+                                    <span className="mt-4 px-4 py-1.5 bg-green-500/10 text-green-600 text-[10px] font-bold rounded-full font-ancient uppercase tracking-widest border border-green-500/20">
                                         ✓ VERIFIED passage
                                     </span>
                                 </div>
@@ -232,55 +392,53 @@ export default function ConfirmationPage() {
                                             unoptimized
                                         />
                                     </div>
-                                    <p className="text-[#5c4033]/60 font-ancient text-[10px] uppercase tracking-widest mt-4">The Key to the Archives</p>
+                                    <p className="text-[#5c4033]/60 font-ancient text-[10px] uppercase tracking-widest mt-4">Entry Pass QR Code</p>
                                 </div>
                             )}
 
                             {/* Details */}
-                            <div className="grid grid-cols-1 gap-4 mb-10 border-y border-manthan-maroon/5 py-8">
+                            <div className="grid grid-cols-1 gap-2 mb-6 border-y border-manthan-maroon/10 py-6">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Herald</span>
+                                    <span className="text-manthan-maroon/40 text-[9px] font-bold uppercase tracking-widest font-ancient">Name</span>
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.name}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Codex</span>
+                                    <span className="text-manthan-maroon/40 text-[9px] font-bold uppercase tracking-widest font-ancient">Email</span>
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.email}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Contact</span>
+                                    <span className="text-manthan-maroon/40 text-[9px] font-bold uppercase tracking-widest font-ancient">Contact</span>
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.phone}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">College</span>
+                                    <span className="text-manthan-maroon/40 text-[9px] font-bold uppercase tracking-widest font-ancient">College</span>
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.college}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Payment ID</span>
-                                    <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.razorpay_payment_id || 'CASH_ENTRY'}</span>
-                                </div>
+
                             </div>
 
                             {/* Registered Events */}
-                            <div className="mb-8">
-                                <h3 className="text-manthan-maroon/60 font-bold mb-4 text-[10px] uppercase tracking-[0.2em] font-ancient">Inscribed Trials</h3>
-                                <div className="grid grid-cols-1 gap-3">
+                            <div className="mb-6">
+                                <h3 className="text-manthan-maroon/60 font-bold mb-3 text-[9px] uppercase tracking-[0.2em] font-ancient">Registered Events</h3>
+                                <div className="grid grid-cols-1 gap-2">
                                     {events.map((event) => (
                                         <div
                                             key={event.id}
-                                            className="p-4 rounded-xl bg-black/5 border-l-4 border-manthan-maroon transition-all"
+                                            className="p-3 rounded-xl bg-black/5 border-l-4 border-manthan-maroon transition-all"
                                         >
-                                            <p className="text-[#3d2b1f] text-sm font-bold font-ancient">{event.name}</p>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                {event.venue && (
-                                                    <span className="text-[#5c4033]/60 text-[10px] flex items-center font-ancient uppercase tracking-wider">
-                                                        <MapPin size={10} className="mr-1" />
-                                                        {event.venue}
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-[#3d2b1f] text-xs font-bold font-ancient">{event.name}</p>
+                                                {event.event_date && (
+                                                    <span className="text-[#5c4033]/60 text-[8px] flex items-center font-ancient uppercase tracking-wider">
+                                                        {formatDate(event.event_date)}
                                                     </span>
                                                 )}
-                                                {event.event_date && (
-                                                    <span className="text-[#5c4033]/60 text-[10px] flex items-center font-ancient uppercase tracking-wider">
-                                                        <Calendar size={10} className="mr-1" />
-                                                        {formatDate(event.event_date)}
+                                            </div>
+                                            <div className="flex items-center gap-4 mt-1">
+                                                {event.venue && (
+                                                    <span className="text-[#5c4033]/60 text-[8px] flex items-center font-ancient uppercase tracking-wider">
+                                                        <MapPin size={8} className="mr-1" />
+                                                        {event.venue}
                                                     </span>
                                                 )}
                                             </div>
@@ -292,7 +450,7 @@ export default function ConfirmationPage() {
                             {/* Total and Footer */}
                             <div className="mt-10 pt-8 border-t border-manthan-maroon/10">
                                 <div className="flex items-center justify-between mb-8">
-                                    <span className="text-[#5c4033]/60 text-[10px] font-bold uppercase tracking-widest font-ancient">Total Offering</span>
+                                    <span className="text-[#5c4033]/60 text-[10px] font-bold uppercase tracking-widest font-ancient">Total Amount</span>
                                     <span className="text-manthan-maroon font-bold text-2xl font-ancient">
                                         {formatFee(registration.total_amount)}
                                     </span>
@@ -305,7 +463,7 @@ export default function ConfirmationPage() {
                                     <div className="flex items-start gap-4 p-4 rounded-xl bg-manthan-maroon/5 border border-manthan-maroon/10 mt-6">
                                         <ShieldCheck size={18} className="text-manthan-maroon flex-shrink-0 mt-0.5" />
                                         <p className="text-[#5c4033] text-[9px] font-ancient leading-relaxed italic text-left">
-                                            This passage is strictly for the chronicler named above. Please present this digital scroll at the gates for entry into the Realm.
+                                            This passage is strictly for the participant named above. Please present this pass at the entrance for entry into the event.
                                         </p>
                                     </div>
                                 </div>
