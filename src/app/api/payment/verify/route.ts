@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { EVENT_CATALOG } from '@/lib/events-catalog';
 import { paymentVerificationSchema } from '@/lib/validations';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -159,11 +160,29 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Generate QR code (stored as data URL for now, but better in Supabase Storage later)
+        // Generate QR code with detailed information
         let qrCodeDataUrl = null;
         try {
-            qrCodeDataUrl = await QRCode.toDataURL(registration.ticket_id, {
-                width: 300,
+            const eventNames = (registration.event_ids || [])
+                .map((id: string) => EVENT_CATALOG.find((e) => e.id === id)?.name)
+                .filter(Boolean)
+                .join(', ');
+
+            const qrContent = `MANTHAN 2026 ENTRY PASS
+---------------------------
+Ticket ID: ${registration.ticket_id}
+Payment ID: ${razorpay_payment_id}
+Name: ${registration.name}
+Email: ${registration.email}
+Phone: ${registration.phone}
+College: ${registration.college}
+Events: ${eventNames || 'None'}
+Registered At: ${new Date(registration.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+---------------------------
+Pass Status: VERIFIED & PAID`;
+
+            qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
+                width: 400,
                 margin: 2,
                 color: {
                     dark: '#000000',

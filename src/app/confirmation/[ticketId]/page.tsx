@@ -61,7 +61,9 @@ export default function ConfirmationPage() {
           .pass::before, .pass::after { content: ''; position: absolute; left: -10px; right: -10px; height: 15px; background: #3d2b1f; border-radius: 10px; opacity: 0.8; }
           .pass::before { top: -8px; }
           .pass::after { bottom: -8px; }
-          .header { text-align: center; border-bottom: 1px solid rgba(61,43,31,0.1); padding-bottom: 25px; margin-bottom: 25px; }
+          .logo-container { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; width: 100%; }
+          .side-logo { width: 60px; height: auto; object-fit: contain; }
+          .header { text-align: center; border-bottom: 1px solid rgba(61,43,31,0.1); padding-bottom: 25px; margin-bottom: 25px; position: relative; }
           .title { font-size: 32px; color: #3d2b1f; font-weight: bold; letter-spacing: 6px; text-transform: uppercase; }
           .subtitle { color: #8B0000; font-size: 14px; margin-top: 6px; font-style: italic; }
           .ticket-id { font-size: 20px; color: #3d2b1f; font-weight: bold; margin: 20px 0; letter-spacing: 3px; border: 1px dashed #3d2b1f; display: inline-block; padding: 8px 16px; }
@@ -82,6 +84,10 @@ export default function ConfirmationPage() {
       </head>
       <body>
         <div class="pass">
+          <div class="logo-container">
+            <img src="/manthan_final_logo2.png" class="side-logo" alt="Logo L" />
+            <img src="/bbbg-removebg-preview.png" class="side-logo" alt="Logo R" />
+          </div>
           <div class="header">
             <div class="title">MANTHAN</div>
             <div class="subtitle">2026 • Festival of Ancient Wisdom</div>
@@ -95,13 +101,18 @@ export default function ConfirmationPage() {
           <div class="details">
             <div class="detail-row"><span class="detail-label">Chronicler</span><span class="detail-value">${registration?.name}</span></div>
             <div class="detail-row"><span class="detail-label">Codex</span><span class="detail-value">${registration?.email}</span></div>
+            <div class="detail-row"><span class="detail-label">Contact</span><span class="detail-value">${registration?.phone}</span></div>
             <div class="detail-row"><span class="detail-label">Guild</span><span class="detail-value">${registration?.college}</span></div>
+            <div class="detail-row"><span class="detail-label">Payment ID</span><span class="detail-value">${registration?.razorpay_payment_id || 'CASH_ENTRY'}</span></div>
           </div>
           <div class="events-list">
             <div class="events-title">Inscribed Trials</div>
             ${events.map((e) => `
               <div class="event-item">
-                <div style="font-weight:bold;">${e.name}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="font-weight:bold;">${e.name}</div>
+                  <div style="font-size:10px; opacity:0.8;">${e.event_date ? formatDate(e.event_date) : '24-25 Mar'}</div>
+                </div>
                 <div style="font-size:11px;opacity:0.7;margin-top:2px;">${e.venue || 'The Great Arena'}</div>
               </div>
             `).join('')}
@@ -181,7 +192,13 @@ export default function ConfirmationPage() {
                     <div className="parchment-container max-w-lg mx-auto shadow-2xl overflow-visible">
                         <div className="scroll-roll" />
 
-                        <div ref={passRef} className="parchment-body p-6 sm:p-10 shrink-0">
+                        <div ref={passRef} className="parchment-body p-6 sm:p-10 shrink-0 relative">
+                            {/* Pass Logos */}
+                            <div className="flex justify-between items-start mb-6 -mt-2">
+                                <img src="/manthan_final_logo2.png" className="w-12 h-auto object-contain" alt="Logo L" />
+                                <img src="/bbbg-removebg-preview.png" className="w-12 h-auto object-contain" alt="Logo R" />
+                            </div>
+
                             {/* Pass Header */}
                             <div className="text-center border-b border-manthan-maroon/10 pb-8 mb-8">
                                 <h2 className="font-ancient text-4xl font-bold text-[#3d2b1f] tracking-[0.2em] uppercase">
@@ -230,8 +247,16 @@ export default function ConfirmationPage() {
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.email}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
+                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Contact</span>
+                                    <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.phone}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
                                     <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">College</span>
                                     <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.college}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-manthan-maroon/40 text-[10px] font-bold uppercase tracking-widest font-ancient">Payment ID</span>
+                                    <span className="text-[#3d2b1f] font-bold font-ancient truncate max-w-[200px]">{registration.razorpay_payment_id || 'CASH_ENTRY'}</span>
                                 </div>
                             </div>
 
