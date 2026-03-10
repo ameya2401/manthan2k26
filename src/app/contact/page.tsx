@@ -74,14 +74,26 @@ export default function ContactPage() {
                                     <ContactItem
                                         icon={<Mail size={24} />}
                                         label="Electronic Scroll"
-                                        value="principal.bvimit@bharatividyapeeth.edu"
-                                        link="mailto:principal.bvimit@bharatividyapeeth.edu"
+                                        value="bvimitn@gmail.com"
+                                        link="mailto:bvimitn@gmail.com"
                                     />
                                     <ContactItem
                                         icon={<Phone size={24} />}
-                                        label="Signal Transmission"
-                                        value="+91 8657008016"
-                                        link="tel:+918657008016"
+                                        label="Divyaksh Soni"
+                                        value="8955791968"
+                                        link="tel:+918955791968"
+                                    />
+                                    <ContactItem
+                                        icon={<Phone size={24} />}
+                                        label="Sakshi Mishra"
+                                        value="9369120414"
+                                        link="tel:+919369120414"
+                                    />
+                                    <ContactItem
+                                        icon={<Phone size={24} />}
+                                        label="Sarvesh Bankar"
+                                        value="8857847796"
+                                        link="tel:+918857847796"
                                     />
                                     <ContactItem
                                         icon={<MapPin size={24} />}
@@ -90,12 +102,7 @@ export default function ContactPage() {
                                         link="https://maps.google.com"
                                     />
                                 </div>
-                                <div className="mt-12 p-6 border-2 border-[#3d2b1f]/10 rounded-xl bg-[#3d2b1f]/5">
-                                    <p className="font-serif italic text-[#5c4033] text-sm leading-relaxed">
-                                        Our messengers are active during the peak of the sun (10:00 AM - 5:00 PM).
-                                        Urgent decrees will be handled by the high priority couriers.
-                                    </p>
-                                </div>
+
                             </ScrollWrapper>
                         </motion.div>
 

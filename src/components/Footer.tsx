@@ -93,9 +93,11 @@ export default function Footer() {
                             <li className="flex items-center justify-center md:justify-start gap-4">
                                 <Phone size={18} className="text-manthan-gold shrink-0" />
                                 <div className="flex flex-col md:flex-row md:gap-x-2">
-                                    <a href="tel:02227578415" className="hover:text-manthan-gold transition-colors duration-300">022-27578415</a>
+                                    <a href="tel:+918955791968" className="hover:text-manthan-gold transition-colors duration-300">8955791968</a>
                                     <span className="hidden md:inline">/</span>
-                                    <a href="tel:+918657008016" className="hover:text-manthan-gold transition-colors duration-300">+91 8657008016</a>
+                                    <a href="tel:+919369120414" className="hover:text-manthan-gold transition-colors duration-300">9369120414</a>
+                                    <span className="hidden md:inline">/</span>
+                                    <a href="tel:+918857847796" className="hover:text-manthan-gold transition-colors duration-300">8857847796</a>
                                 </div>
                             </li>
                             <li className="flex items-center justify-center md:justify-start gap-4">
@@ -104,7 +106,7 @@ export default function Footer() {
                             </li>
                             <li className="flex items-center justify-center md:justify-start gap-4">
                                 <Mail size={18} className="text-manthan-gold shrink-0" />
-                                <a href="mailto:principal.bvimit@bharatividyapeeth.edu" className="hover:text-manthan-gold transition-colors duration-300 break-words md:break-normal">principal.bvimit@bharatividyapeeth.edu</a>
+                                <a href="mailto:bvimitn@gmail.com" className="hover:text-manthan-gold transition-colors duration-300 break-words md:break-normal">bvimitn@gmail.com</a>
                             </li>
                         </ul>
                     </div>
