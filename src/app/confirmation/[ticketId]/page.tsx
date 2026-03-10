@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Registration, Event } from '@/lib/types';
 import { formatFee, formatDate } from '@/lib/constants';
-import { CheckCircle, Download, Calendar, MapPin, ShieldCheck } from 'lucide-react';
+import { CheckCircle, Download, MapPin, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -355,8 +355,8 @@ export default function ConfirmationPage() {
                         <div ref={passRef} className="parchment-body p-6 sm:p-10 shrink-0 relative">
                             {/* Pass Logos */}
                             <div className="flex justify-between items-start mb-6 -mt-2">
-                                <img src="/manthan_final_logo2.png" className="w-12 h-auto object-contain" alt="Logo L" />
-                                <img src="/bbbg-removebg-preview.png" className="w-12 h-auto object-contain" alt="Logo R" />
+                                <Image src="/manthan_final_logo2.png" width={48} height={48} className="w-12 h-auto object-contain" alt="Logo L" />
+                                <Image src="/bbbg-removebg-preview.png" width={48} height={48} className="w-12 h-auto object-contain" alt="Logo R" />
                             </div>
 
                             {/* Pass Header */}
