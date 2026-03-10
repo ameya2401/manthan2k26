@@ -7,6 +7,7 @@ import { Calendar, MapPin, Users, ArrowLeft, IndianRupee } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { getEventBySlug } from '@/lib/events-catalog';
+import BackButton from '@/components/BackButton';
 
 async function getEvent(slug: string): Promise<Event | null> {
     try {
@@ -58,13 +59,7 @@ export default async function EventDetailPage({
 
                 <div className="max-w-4xl mx-auto relative z-10">
                     {/* Back Link */}
-                    <Link
-                        href="/events"
-                        className="inline-flex items-center text-[#d4af37] hover:text-[#d4af37]/80 transition-colors mb-8"
-                    >
-                        <ArrowLeft size={18} className="mr-2" />
-                        Back to Events
-                    </Link>
+                    <BackButton />
 
                     {/* Event Card - Parchment Style */}
                     <div className="parchment-container rounded-none">
@@ -123,7 +118,24 @@ export default async function EventDetailPage({
                             {(event.prize_text || event.prize_winner || event.prize_runner_up || event.prize_second_runner_up || event.registration_deadline) && (
                                 <div className="mb-8 rounded-lg border border-manthan-maroon/10 bg-black/5 p-5">
                                     <h2 className="font-heading text-xl font-bold text-manthan-maroon mb-3 border-b border-manthan-maroon/10 pb-2">Prizes & Deadlines</h2>
-                                    {event.prize_text && <p className="text-[#5c4033] text-sm mb-3 italic">{event.prize_text}</p>}
+
+                                    {event.prize_text && (
+                                        <div className="space-y-4 mb-4">
+                                            {event.prize_text.split('\n\n').map((categoryBlock, idx) => (
+                                                <div key={idx} className="bg-manthan-maroon/5 p-4 rounded-lg border border-manthan-maroon/10">
+                                                    {categoryBlock.split('\n').map((line, lIdx) => {
+                                                        const isHeader = line.includes('PRIZES:');
+                                                        return (
+                                                            <p key={lIdx} className={`${isHeader ? 'font-ancient text-lg text-manthan-maroon mb-2 border-b border-manthan-maroon/10 pb-1' : 'text-[#5c4033] text-sm italic mb-1'}`}>
+                                                                {line}
+                                                            </p>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
                                         {event.prize_winner && (
                                             <div>

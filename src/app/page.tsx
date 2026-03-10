@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowRight, Sparkles, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Sparkles, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { scheduleData } from '@/lib/constants';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -228,9 +228,12 @@ export default function HomePage() {
                             transition={{ duration: 0.6 }}
                             className="space-y-6"
                         >
-                            <div className="text-center mb-8">
+                            <div className="text-center mb-8 flex flex-col items-center gap-2">
                                 <span className="font-ancient text-2xl text-manthan-gold tracking-widest border-b border-manthan-gold/30 pb-2">
                                     {scheduleData[activeDay].date}
+                                </span>
+                                <span className="font-ancient text-xl font-bold text-manthan-gold uppercase tracking-[0.2em]">
+                                    timing : 9 onwards
                                 </span>
                             </div>
 
@@ -239,7 +242,6 @@ export default function HomePage() {
                                     <table className="w-full text-left border-collapse font-serif text-[#3d2b1f]">
                                         <thead>
                                             <tr className="border-b-2 border-manthan-maroon/20">
-                                                <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Time</th>
                                                 <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Chronicle (Event)</th>
                                                 <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Realm (Venue)</th>
                                             </tr>
@@ -247,12 +249,6 @@ export default function HomePage() {
                                         <tbody className="divide-y divide-manthan-maroon/10">
                                             {scheduleData[activeDay].slots.map((slot, index) => (
                                                 <tr key={index} className="hover:bg-manthan-maroon/5 transition-colors group">
-                                                    <td className="py-2 px-2 md:py-4 md:px-4 text-[#3d2b1f] font-bold text-[10px] md:text-sm whitespace-nowrap">
-                                                        <div className="flex items-center gap-1.5 md:gap-2">
-                                                            <Clock size={14} className="text-manthan-maroon/60" />
-                                                            {slot.time}
-                                                        </div>
-                                                    </td>
                                                     <td className="py-2 px-2 md:py-4 md:px-4">
                                                         <div className="flex flex-col">
                                                             <span className="text-[#1a0a0a] font-ancient font-bold text-xs md:text-lg tracking-wider group-hover:text-manthan-maroon transition-colors line-clamp-2 md:line-clamp-none">
