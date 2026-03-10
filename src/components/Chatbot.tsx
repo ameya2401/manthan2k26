@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Bot, User, ChevronDown, Sparkles } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Sparkles } from 'lucide-react';
 
 interface Message {
     id: string;
