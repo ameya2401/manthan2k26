@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LogoLoading from './LogoLoading';
 
 interface VideoIntroProps {
     onComplete: () => void;
@@ -18,7 +17,6 @@ function getVideoSrc(): string {
 
 export default function VideoIntro({ onComplete }: VideoIntroProps) {
     const [isVisible, setIsVisible] = useState(true);
-    const [isBuffering, setIsBuffering] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     // Resolve source once on mount (not via state to avoid extra render)
@@ -29,21 +27,14 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
         setTimeout(onComplete, 1000);
     }, [onComplete]);
 
-    // Called when video actually starts playing — hides spinner
-    const handleTimeUpdate = useCallback(() => {
-        if (isBuffering) {
-            setIsBuffering(false);
-        }
-    }, [isBuffering]);
-
-    // Safety fallback - skip intro if video never loads within 15s
+    // Safety fallback - skip intro if video never loads within 4s (faster fallback)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (isVisible) {
                 setIsVisible(false);
-                setTimeout(onComplete, 1000);
+                setTimeout(onComplete, 500); // Shorter completion delay
             }
-        }, 8000);
+        }, 4000);
         return () => clearTimeout(timer);
     }, [isVisible, onComplete]);
 
@@ -53,23 +44,10 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                 <motion.div
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 1, ease: "easeInOut" }}
+                    transition={{ duration: 0.6, ease: "easeOut" }} // Snappier exit
                     className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden"
                     style={{ height: '100svh' }}
                 >
-                    <AnimatePresence>
-                        {isBuffering && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 1, ease: "easeInOut" }}
-                                className="absolute inset-0 z-[10001] flex items-center justify-center bg-black"
-                            >
-                                <LogoLoading />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
                     <video
                         ref={videoRef}
@@ -78,7 +56,6 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                         autoPlay
                         preload="auto"
                         src={videoSrc}
-                        onTimeUpdate={handleTimeUpdate}
                         onEnded={handleVideoEnd}
                         className="absolute inset-0 w-full h-full object-cover"
                     />
