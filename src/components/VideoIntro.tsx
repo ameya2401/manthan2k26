@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LogoLoading from './LogoLoading';
 
 interface VideoIntroProps {
     onComplete: () => void;
@@ -18,7 +17,6 @@ function getVideoSrc(): string {
 
 export default function VideoIntro({ onComplete }: VideoIntroProps) {
     const [isVisible, setIsVisible] = useState(true);
-    const [isBuffering, setIsBuffering] = useState(true);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     // Resolve source once on mount (not via state to avoid extra render)
@@ -28,13 +26,6 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
         setIsVisible(false);
         setTimeout(onComplete, 1000);
     }, [onComplete]);
-
-    // Called when video actually starts playing — hides spinner
-    const handleTimeUpdate = useCallback(() => {
-        if (isBuffering) {
-            setIsBuffering(false);
-        }
-    }, [isBuffering]);
 
     // Safety fallback - skip intro if video never loads within 4s (faster fallback)
     useEffect(() => {
@@ -65,7 +56,6 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
                         autoPlay
                         preload="auto"
                         src={videoSrc}
-                        onTimeUpdate={handleTimeUpdate}
                         onEnded={handleVideoEnd}
                         className="absolute inset-0 w-full h-full object-cover"
                     />
