@@ -27,14 +27,15 @@ export default function VideoIntro({ onComplete }: VideoIntroProps) {
         setTimeout(onComplete, 1000);
     }, [onComplete]);
 
-    // Safety fallback - skip intro if video never loads within 4s (faster fallback)
+    // Safety fallback - skip intro if video never loads within 20s (increased from 4s)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (isVisible) {
+                console.log("Intro video safety fallback triggered after 20s");
                 setIsVisible(false);
-                setTimeout(onComplete, 500); // Shorter completion delay
+                setTimeout(onComplete, 500); 
             }
-        }, 4000);
+        }, 20000);
         return () => clearTimeout(timer);
     }, [isVisible, onComplete]);
 

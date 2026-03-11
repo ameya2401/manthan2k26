@@ -12,6 +12,7 @@ export interface Event {
     event_date: string;
     registration_deadline: string | null;
     venue: string;
+    lead_coordinator?: string | null;
     rules: string[];
     prize_text: string | null;
     prize_winner: number | null;

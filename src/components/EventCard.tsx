@@ -34,7 +34,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             initial="closed"
             whileInView="open"
             whileTap={{ scale: 0.98 }}
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: "-20px" }}
             className={`parchment-card transition-all duration-300 cursor-pointer group ${selected
                 ? 'scale-[1.02] z-20'
                 : 'hover:rotate-1'
@@ -44,7 +44,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             {/* Top Roll */}
             <motion.div
                 variants={{
-                    closed: { y: 10 },
+                    closed: { y: 3 },
                     open: { y: 0 }
                 }}
                 className="scroll-roll"
@@ -53,11 +53,21 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             {/* Scroll Body (Expanding) */}
             <motion.div
                 variants={{
-                    closed: { height: 0, opacity: 0 },
-                    open: { height: 'auto', opacity: 1 }
+                    closed: { 
+                        opacity: 0, 
+                        scaleY: 0.95, 
+                        transformOrigin: 'top' 
+                    },
+                    open: { 
+                        opacity: 1,
+                        scaleY: 1,
+                        transition: { 
+                            duration: 0.4, 
+                            ease: [0.22, 1, 0.36, 1] 
+                        }
+                    }
                 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="parchment-body p-6"
+                className="parchment-body p-6 will-change-transform"
             >
                 {/* Category Badge */}
                 <div className="flex items-center justify-between mb-4">
@@ -88,6 +98,13 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
                 <h3 className="font-ancient text-2xl font-bold text-[#3d2b1f] mb-2 group-hover:text-manthan-maroon transition-colors">
                     {event.name}
                 </h3>
+
+                {/* Event Coordinator (Cultural Only) */}
+                {event.category === 'cultural' && event.lead_coordinator && (
+                    <p className="text-manthan-maroon/80 text-sm font-bold mb-2 font-ancient tracking-wider">
+                        Lead: {event.lead_coordinator}
+                    </p>
+                )}
 
                 {/* Description */}
                 <p className="text-[#5c4033] text-base mb-4 line-clamp-2">{event.description}</p>
@@ -126,7 +143,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             {/* Bottom Roll */}
             <motion.div
                 variants={{
-                    closed: { y: -10 },
+                    closed: { y: -3 },
                     open: { y: 0 }
                 }}
                 className="scroll-roll"

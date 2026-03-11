@@ -30,6 +30,42 @@ export default function EventsFilter({ events }: { events: Event[] }) {
         };
     }, [activeCategory, events]);
 
+    const containerVariants = {
+        closed: { opacity: 0.8 },
+        open: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.08,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        closed: { opacity: 0, y: 15 },
+        open: { 
+            opacity: 1, 
+            y: 0,
+            transition: { duration: 0.4, ease: "easeOut" }
+        }
+    };
+
+    const parchmentVariants = {
+        closed: { 
+            opacity: 0,
+            scaleY: 0.98,
+            transformOrigin: 'top'
+        },
+        open: { 
+            opacity: 1,
+            scaleY: 1,
+            transition: { 
+                duration: 0.4, 
+                ease: [0.22, 1, 0.36, 1] 
+            } 
+        }
+    };
+
     return (
         <>
             {/* Filter Tabs */}
@@ -56,25 +92,29 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                         <motion.div
                             initial="closed"
                             whileInView="open"
-                            viewport={{ once: true }}
+                            viewport={{ once: true, margin: "-100px" }}
                             className="parchment-container rounded-none mb-12"
                         >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: 5 }, open: { y: 0 } }} className="scroll-roll" />
                             <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
+                                variants={parchmentVariants}
                                 className="parchment-body p-8 overflow-hidden"
                             >
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     Outdoor Sports
                                 </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
+                                <motion.div 
+                                    variants={containerVariants}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8"
+                                >
                                     {outdoorSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <motion.div key={event.id} variants={itemVariants}>
+                                            <EventCard event={event} />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: -5 }, open: { y: 0 } }} className="scroll-roll" />
                         </motion.div>
                     )}
 
@@ -82,25 +122,29 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                         <motion.div
                             initial="closed"
                             whileInView="open"
-                            viewport={{ once: true }}
+                            viewport={{ once: true, margin: "-100px" }}
                             className="parchment-container rounded-none mb-12"
                         >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: 5 }, open: { y: 0 } }} className="scroll-roll" />
                             <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
+                                variants={parchmentVariants}
                                 className="parchment-body p-8 overflow-hidden"
                             >
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     Indoor Sports
                                 </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
+                                <motion.div 
+                                    variants={containerVariants}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8"
+                                >
                                     {indoorSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <motion.div key={event.id} variants={itemVariants}>
+                                            <EventCard event={event} />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: -5 }, open: { y: 0 } }} className="scroll-roll" />
                         </motion.div>
                     )}
 
@@ -108,25 +152,29 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                         <motion.div
                             initial="closed"
                             whileInView="open"
-                            viewport={{ once: true }}
+                            viewport={{ once: true, margin: "-100px" }}
                             className="parchment-container rounded-none mb-12"
                         >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: 5 }, open: { y: 0 } }} className="scroll-roll" />
                             <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
+                                variants={parchmentVariants}
                                 className="parchment-body p-8 overflow-hidden"
                             >
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     More Sports Events
                                 </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
+                                <motion.div 
+                                    variants={containerVariants}
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8"
+                                >
                                     {otherSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <motion.div key={event.id} variants={itemVariants}>
+                                            <EventCard event={event} />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
+                            <motion.div variants={{ closed: { y: -5 }, open: { y: 0 } }} className="scroll-roll" />
                         </motion.div>
                     )}
                 </div>
@@ -137,10 +185,9 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                     animate="open"
                     className="parchment-container rounded-none"
                 >
-                    <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
+                    <motion.div variants={{ closed: { y: 5 }, open: { y: 0 } }} className="scroll-roll" />
                     <motion.div
-                        variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                        transition={{ duration: 1, ease: "easeOut" }}
+                        variants={parchmentVariants}
                         className="parchment-body p-8"
                     >
                         {activeCategory !== 'all' && (
@@ -148,13 +195,18 @@ export default function EventsFilter({ events }: { events: Event[] }) {
                                 {activeCategory} Events
                             </h2>
                         )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-6">
+                        <motion.div 
+                            variants={containerVariants}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-6"
+                        >
                             {filtered.map((event) => (
-                                <EventCard key={event.id} event={event} />
+                                <motion.div key={event.id} variants={itemVariants}>
+                                    <EventCard event={event} />
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </motion.div>
-                    <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
+                    <motion.div variants={{ closed: { y: -5 }, open: { y: 0 } }} className="scroll-roll" />
                 </motion.div>
             )}
 

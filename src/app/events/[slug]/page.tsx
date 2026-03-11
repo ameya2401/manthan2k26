@@ -75,6 +75,13 @@ export default async function EventDetailPage({
                                 {event.name}
                             </h1>
 
+                            {/* Event Coordinator (Cultural Only) */}
+                            {event.category === 'cultural' && event.lead_coordinator && (
+                                <p className="text-manthan-maroon font-ancient font-bold text-lg mb-6 tracking-widest border-l-4 border-manthan-maroon/20 pl-4 py-1">
+                                    Event Coordinator: {event.lead_coordinator}
+                                </p>
+                            )}
+
                             {/* Description */}
                             <p className="text-[#5c4033] text-lg leading-relaxed mb-8 italic">{event.description}</p>
 
