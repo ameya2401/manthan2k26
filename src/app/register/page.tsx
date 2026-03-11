@@ -81,7 +81,7 @@ function estimateEventAmount(event: Event, teamRegistration?: TeamRegistration):
         : 1;
 
     // Special case for Cultural events: Solo 200, Group 400
-    if (event.category === 'cultural' && (event.name === 'NrityaVerse' || event.name === 'SurTarang')) {
+    if (event.category === 'cultural' && (event.name === 'Ekal / Samuha Nritya (Dance)' || event.name === 'Swara Ekam / Sangam (Singing)')) {
         return teamSize > 1 ? 40000 : 20000;
     }
 

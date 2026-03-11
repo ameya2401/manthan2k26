@@ -5,7 +5,7 @@ const catalogCreatedAt = '2026-02-26T00:00:00+05:30';
 export const EVENT_CATALOG: Event[] = [
     {
         id: '10000000-0000-0000-0000-000000000001',
-        name: 'Prompt2Website: The Vibe Coding Challenge',
+        name: 'VantraSutra (AI Website Building)',
         slug: 'prompt2website-the-vibe-coding-challenge',
         description: 'Lead: Ganesh. Turn prompts into powerful websites.',
         long_description: 'AI Website Building challenge where each participant builds a complete website from a given problem statement within a limited time and presents the final output to judges.',
@@ -48,7 +48,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '10000000-0000-0000-0000-000000000002',
-        name: 'TypeSprint: The Ultimate Typing Showdown',
+        name: 'Akshar Vedha (Typing Competition)',
         slug: 'typesprint-the-ultimate-typing-showdown',
         description: 'Lead: Shravan. Fast fingers. Faster victory.',
         long_description: 'Typing Competition event focused on speed and precision where participants compete on organizer-selected software with scoring based on WPM and accuracy.',
@@ -91,7 +91,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '10000000-0000-0000-0000-000000000003',
-        name: 'QuizStorm: Battle of Brains',
+        name: 'Gyansabha (Quiz Competition)',
         slug: 'quizstorm-battle-of-brains',
         description: 'Lead: Sachin. Where knowledge meets competition.',
         long_description: 'A competitive quiz event designed to test knowledge, speed, logic, and presence of mind in a fun and engaging format.',
@@ -130,7 +130,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '10000000-0000-0000-0000-000000000004',
-        name: 'CanvaCraft: The Poster Design Challenge',
+        name: 'Rachnatmak Kala (Canva Poster Making)',
         slug: 'canvacraft-the-poster-design-challenge',
         description: 'Lead: Pooja. Design. Create. Dominate.',
         long_description: 'Poster Designing (Canva) event where participants create a theme-based A4 poster within 90 minutes using Canva only.',
@@ -171,7 +171,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '10000000-0000-0000-0000-000000000006',
-        name: 'NrityaVerse',
+        name: 'Ekal / Samuha Nritya (Dance)',
         slug: 'nrityaverse',
         description: 'Where tradition meets limitless expression.',
         long_description: 'Celebrate creativity, expression, and performance in this flagship dance competition.',
@@ -210,7 +210,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '10000000-0000-0000-0000-000000000007',
-        name: 'SurTarang',
+        name: 'Swara Ekam / Sangam (Singing)',
         slug: 'surtarang',
         description: 'Ride the waves of melody.',
         long_description: 'Singing competition for Solo and Group participants celebrating melody, performance, and expression.',
@@ -247,7 +247,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000001',
-        name: 'Badminton',
+        name: 'Vayu Krida (Badminton)',
         slug: 'badminton',
         description: 'Lead: Akansha Belote. Solo badminton tournament (Male/Female).',
         long_description: null,
@@ -287,7 +287,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000002',
-        name: 'Box Cricket',
+        name: 'Kanduk Kshetra (Box Cricket)',
         slug: 'box-cricket',
         description: 'Lead: Sahil Naik. Competitive box cricket tournament.',
         long_description: null,
@@ -329,7 +329,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000003',
-        name: 'Volleyball',
+        name: 'Vayu Kanduk (Volleyball)',
         slug: 'volleyball',
         description: 'Lead: Tejas Natekar. High-intensity volleyball competition.',
         long_description: null,
@@ -369,7 +369,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000004',
-        name: 'Tug of war',
+        name: 'Rassa Yuddh (Tug of war)',
         slug: 'tug-of-war',
         description: 'Lead: Rohan Waghmode. Traditional rope pulling challenge.',
         long_description: null,
@@ -403,7 +403,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000005',
-        name: 'Chess',
+        name: 'Chaturang (Chess)',
         slug: 'chess',
         description: 'Lead: Suraj Suryawanshi. Strategy and focus showdown.',
         long_description: null,
@@ -440,7 +440,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000006',
-        name: 'Carrom',
+        name: 'Chakra Sangram (Carrom)',
         slug: 'carrom',
         description: 'Lead: Suraj Suryawanshi. Precision and control on the board.',
         long_description: null,
@@ -474,7 +474,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000007',
-        name: 'Ludo',
+        name: 'Chatur Yatra (Ludo)',
         slug: 'ludo',
         description: 'Lead: Suraj Suryawanshi. Casual board game tournament.',
         long_description: null,
@@ -510,7 +510,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000008',
-        name: 'BGMI',
+        name: 'Digital Yuddh (BGMI)',
         slug: 'bgmi',
         description: 'Lead: Mahesh Khune. Elite squad battle royale.',
         long_description: null,
@@ -544,7 +544,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000009',
-        name: 'Deadlift',
+        name: 'Bhu Utthaan (Deadlift)',
         slug: 'deadlift',
         description: 'Lead: Pratik More. Test your raw strength.',
         long_description: null,
@@ -578,7 +578,7 @@ export const EVENT_CATALOG: Event[] = [
     },
     {
         id: '20000000-0000-0000-0000-000000000010',
-        name: 'Bench Press',
+        name: 'Bahu Bal (Bench Press)',
         slug: 'bench-press',
         description: 'Lead: Pratik More. Pushing to the limit.',
         long_description: null,

@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 import { EVENT_CATALOG } from '@/lib/events-catalog';
 import { paymentVerificationSchema } from '@/lib/validations';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { sendTicketEmail } from '@/lib/mail-service';
 
 type DbErrorLike = {
     message?: string;
@@ -162,8 +163,9 @@ export async function POST(request: NextRequest) {
 
         // Generate QR code with detailed information
         let qrCodeDataUrl = null;
+        let eventNames = "";
         try {
-            const eventNames = (registration.event_ids || [])
+            eventNames = (registration.event_ids || [])
                 .map((id: string) => EVENT_CATALOG.find((e) => e.id === id)?.name)
                 .filter(Boolean)
                 .join(', ');
@@ -213,6 +215,44 @@ Pass Status: VERIFIED & PAID`;
                 },
                 { status: 500 }
             );
+        }
+
+        // NEW: SEND TICKET VIA EMAIL
+        if (qrCodeDataUrl) {
+            try {
+                // Get full event details for the email and pass
+                const registeredEvents = (registration.event_ids || [])
+                    .map((id: string) => {
+                        const event = EVENT_CATALOG.find((e) => e.id === id);
+                        return event ? {
+                            name: event.name,
+                            venue: event.venue,
+                            event_date: event.event_date
+                        } : null;
+                    })
+                    .filter(Boolean);
+
+                // We fire this asynchronously so the user doesn't wait for email delivery to see success screen
+                sendTicketEmail({
+                    email: registration.email,
+                    name: registration.name,
+                    ticketId: registration.ticket_id,
+                    qrCodeDataUrl: qrCodeDataUrl,
+                    eventNames: eventNames,
+                    phone: registration.phone || "N/A",
+                    college: registration.college || "N/A",
+                    totalAmount: `₹${registration.total_amount || 0}`,
+                    events: registeredEvents as Array<{ name: string; venue: string; event_date: string }>,
+                }).then(result => {
+                    if (result.success) {
+                        console.log(`✅ Event pass email sent to ${registration.email}`);
+                    } else {
+                        console.error(`❌ Failed to send email to ${registration.email}:`, result.error);
+                    }
+                });
+            } catch (emailTriggerError) {
+                console.error("Critical error triggering email send:", emailTriggerError);
+            }
         }
 
         return NextResponse.json({

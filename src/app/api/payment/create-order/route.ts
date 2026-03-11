@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
             let eventAmount = event.fee_calculation === 'per_participant' ? event.fee * teamSize : event.fee;
 
             // Special case for Cultural events: Solo 200, Group 400
-            if (event.category === 'cultural' && (event.name === 'NrityaVerse' || event.name === 'SurTarang')) {
+            if (event.category === 'cultural' && (event.name === 'Ekal / Samuha Nritya (Dance)' || event.name === 'Swara Ekam / Sangam (Singing)')) {
                 eventAmount = teamSize > 1 ? 40000 : 20000;
             }
 

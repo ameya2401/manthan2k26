@@ -421,6 +421,29 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleExportCash = async () => {
+        const token = getToken();
+        if (!token) return;
+        try {
+            const res = await fetch('/api/admin/cash-payment/export', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) {
+                alert('Export failed');
+                return;
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `manthan_cash_entries_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            alert('Export failed. Please try again.');
+        }
+    };
+
     const getEventName = (eventId: string) => {
         return events.find((e) => e.id === eventId)?.name || eventId;
     };
@@ -979,26 +1002,34 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Search */}
-                        <div className="glass-card p-4 mb-6">
-                            <div className="flex flex-wrap items-center gap-3">
-                                <div className="flex-1 min-w-[240px] relative">
+                        {/* Search and Export */}
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                            <div className="flex-1 min-w-[300px] glass-card p-2 flex items-center gap-2">
+                                <div className="flex-1 relative">
                                     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                                     <input
                                         type="text"
                                         value={cashSearch}
                                         onChange={(e) => setCashSearch(e.target.value)}
-                                        placeholder="Search by ticket ID, name, email, phone..."
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-sm focus:border-manthan-gold/50 focus:outline-none transition-colors"
+                                        placeholder="Search registrations..."
+                                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/10 text-gray-200 text-sm focus:border-manthan-gold/30 focus:outline-none transition-colors"
                                     />
                                 </div>
                                 <button
                                     onClick={fetchCashRows}
-                                    className="px-4 py-2.5 text-sm bg-manthan-gold/10 text-manthan-gold rounded-lg hover:bg-manthan-gold/20 transition-colors"
+                                    className="px-4 py-2 text-sm bg-manthan-gold/10 text-manthan-gold rounded-lg hover:bg-manthan-gold/20 transition-colors"
                                 >
                                     Search
                                 </button>
                             </div>
+
+                            <button
+                                onClick={handleExportCash}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-manthan-gold/10 text-manthan-gold rounded-xl hover:bg-manthan-gold/20 transition-colors border border-manthan-gold/20 font-medium shadow-lg shadow-manthan-gold/5"
+                            >
+                                <Download size={18} />
+                                Export Cash Summary
+                            </button>
                         </div>
 
                         {/* Cash paid registrations table */}
