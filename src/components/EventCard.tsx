@@ -34,7 +34,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             initial="closed"
             whileInView="open"
             whileTap={{ scale: 0.98 }}
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: "300px" }}
             className={`parchment-card transition-all duration-300 cursor-pointer group ${selected
                 ? 'scale-[1.02] z-20'
                 : 'hover:rotate-1'
@@ -42,21 +42,15 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             onClick={() => selectable && onToggle?.(event.id)}
         >
             {/* Top Roll */}
-            <motion.div
-                variants={{
-                    closed: { y: 10 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
 
             {/* Scroll Body (Expanding) */}
             <motion.div
                 variants={{
-                    closed: { height: 0, opacity: 0 },
-                    open: { height: 'auto', opacity: 1 }
+                    closed: { opacity: 0 },
+                    open: { opacity: 1 }
                 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.2, ease: "linear" }}
                 className="parchment-body p-6"
             >
                 {/* Category Badge */}
@@ -124,13 +118,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             </motion.div>
 
             {/* Bottom Roll */}
-            <motion.div
-                variants={{
-                    closed: { y: -10 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
         </motion.div>
     );
 
