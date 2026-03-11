@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, ScrollText, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 interface PaymentOverlayProps {
     isOpen: boolean;
@@ -12,41 +12,41 @@ interface PaymentOverlayProps {
     onClose?: () => void;
 }
 
+const statusMessages = {
+    verifying: [
+        "Verifying payment details...",
+        "Connecting to secure server...",
+        "Confirming transaction status...",
+        "Finalizing your registration..."
+    ],
+    success: [
+        "Payment successful!",
+        "Payment confirmed by provider.",
+        "Generating your digital event pass...",
+        "Registration confirmed."
+    ],
+    redirecting: [
+        "Preparing your dashboard...",
+        "Redirecting to confirmation page...",
+        "Almost there!"
+    ],
+    error: [
+        "Payment verification failed.",
+        "Transaction could not be verified.",
+        "Please check your bank statement."
+    ]
+};
+
 export default function PaymentOverlay({ isOpen, status, errorMessage }: PaymentOverlayProps) {
     const [lines, setLines] = useState<string[]>([]);
     
-    const statusMessages = {
-        verifying: [
-            "Verifying payment details...",
-            "Connecting to secure server...",
-            "Confirming transaction status...",
-            "Finalizing your registration..."
-        ],
-        success: [
-            "Payment successful!",
-            "Payment confirmed by provider.",
-            "Generating your digital event pass...",
-            "Registration confirmed."
-        ],
-        redirecting: [
-            "Preparing your dashboard...",
-            "Redirecting to confirmation page...",
-            "Almost there!"
-        ],
-        error: [
-            "Payment verification failed.",
-            "Transaction could not be verified.",
-            "Please check your bank statement."
-        ]
-    };
-
     useEffect(() => {
         if (!isOpen) {
             setLines([]);
             return;
         }
 
-        let currentLines = statusMessages[status] || [];
+        const currentLines = statusMessages[status] || [];
         let index = 0;
         setLines([currentLines[0]]);
 
