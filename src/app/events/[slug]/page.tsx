@@ -6,30 +6,22 @@ import Link from 'next/link';
 import { Calendar, MapPin, Users, IndianRupee } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-import { getEventBySlug } from '@/lib/events-catalog';
+import { getEventBySlug, getActiveEvents } from '@/lib/events-catalog';
 import BackButton from '@/components/BackButton';
 
-async function getEvent(slug: string): Promise<Event | null> {
-    try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/events`, { cache: 'no-store' });
-        const data = await res.json();
-        const events = data.events || [];
-        const event = events.find((e: Event) => e.slug === slug);
-        return event || getEventBySlug(slug) || null;
-    } catch {
-        return getEventBySlug(slug) || null;
-    }
+export async function generateStaticParams() {
+    const events = getActiveEvents();
+    return events.map((event: Event) => ({
+        slug: event.slug,
+    }));
 }
 
-export const dynamic = 'force-dynamic';
-
-export default async function EventDetailPage({
+export default function EventDetailPage({
     params,
 }: {
     params: { slug: string };
 }) {
-    const event = await getEvent(params.slug);
+    const event = getEventBySlug(params.slug);
 
     if (!event) {
         notFound();
@@ -74,6 +66,13 @@ export default async function EventDetailPage({
                             <h1 className="font-ancient text-4xl sm:text-5xl font-bold text-[#3d2b1f] mb-4">
                                 {event.name}
                             </h1>
+
+                            {/* Event Coordinator (Cultural Only) */}
+                            {event.category === 'cultural' && event.lead_coordinator && (
+                                <p className="text-manthan-maroon font-ancient font-bold text-lg mb-6 tracking-widest border-l-4 border-manthan-maroon/20 pl-4 py-1">
+                                    Event Coordinator: {event.lead_coordinator}
+                                </p>
+                            )}
 
                             {/* Description */}
                             <p className="text-[#5c4033] text-lg leading-relaxed mb-8 italic">{event.description}</p>

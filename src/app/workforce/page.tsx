@@ -24,15 +24,17 @@ const teamMembers = [
     },
     {
         name: 'Aryan Lehgaonkar',
-        role: 'Backend Integration',
+        role: 'Backend Developer',
         image: '/profile/aryan 2.png',
-        imageClass: 'object-top scale-[1.2] group-hover:scale-115'
+        imageClass: 'object-top scale-[1.2] group-hover:scale-115',
+        linkedin: ''
     },
     {
         name: 'Uday Bhoi',
         role: 'Frontend Developer',
         image: '/profile/uday-bhoi.png',
-        imageClass: 'object-top'
+        imageClass: 'object-top',
+        linkedin: 'https://www.linkedin.com/in/uday-bhoi'
     }
 ];
 

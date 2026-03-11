@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Event } from '@/lib/types';
 import EventCard from '@/components/EventCard';
 import { getSportsTrackByName } from '@/lib/constants';
+import ScrollWrapper from '@/components/ScrollWrapper';
 
 const categories = ['all', 'technical', 'cultural', 'sports'];
 
@@ -30,6 +31,7 @@ export default function EventsFilter({ events }: { events: Event[] }) {
         };
     }, [activeCategory, events]);
 
+
     return (
         <>
             {/* Filter Tabs */}
@@ -53,109 +55,69 @@ export default function EventsFilter({ events }: { events: Event[] }) {
             {activeCategory === 'sports' ? (
                 <div className="space-y-10">
                     {outdoorSports.length > 0 && (
-                        <motion.div
-                            initial="closed"
-                            whileInView="open"
-                            viewport={{ once: true }}
-                            className="parchment-container rounded-none mb-12"
-                        >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
-                            <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                                className="parchment-body p-8 overflow-hidden"
-                            >
+                        <div className="mb-12">
+                            <ScrollWrapper className="rounded-none">
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     Outdoor Sports
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
                                     {outdoorSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <div key={event.id}>
+                                            <EventCard event={event} />
+                                        </div>
                                     ))}
                                 </div>
-                            </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
-                        </motion.div>
+                            </ScrollWrapper>
+                        </div>
                     )}
 
                     {indoorSports.length > 0 && (
-                        <motion.div
-                            initial="closed"
-                            whileInView="open"
-                            viewport={{ once: true }}
-                            className="parchment-container rounded-none mb-12"
-                        >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
-                            <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                                className="parchment-body p-8 overflow-hidden"
-                            >
+                        <div className="mb-12">
+                            <ScrollWrapper className="rounded-none">
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     Indoor Sports
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
                                     {indoorSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <div key={event.id}>
+                                            <EventCard event={event} />
+                                        </div>
                                     ))}
                                 </div>
-                            </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
-                        </motion.div>
+                            </ScrollWrapper>
+                        </div>
                     )}
 
                     {otherSports.length > 0 && (
-                        <motion.div
-                            initial="closed"
-                            whileInView="open"
-                            viewport={{ once: true }}
-                            className="parchment-container rounded-none mb-12"
-                        >
-                            <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
-                            <motion.div
-                                variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                                className="parchment-body p-8 overflow-hidden"
-                            >
+                        <div className="mb-12">
+                            <ScrollWrapper className="rounded-none">
                                 <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
                                     More Sports Events
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-8">
                                     {otherSports.map((event) => (
-                                        <EventCard key={event.id} event={event} />
+                                        <div key={event.id}>
+                                            <EventCard event={event} />
+                                        </div>
                                     ))}
                                 </div>
-                            </motion.div>
-                            <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
-                        </motion.div>
+                            </ScrollWrapper>
+                        </div>
                     )}
                 </div>
             ) : (
-                <motion.div
-                    key={activeCategory}
-                    initial="closed"
-                    animate="open"
-                    className="parchment-container rounded-none"
-                >
-                    <motion.div variants={{ closed: { y: 10 }, open: { y: 0 } }} className="scroll-roll" />
-                    <motion.div
-                        variants={{ closed: { height: 0, opacity: 0 }, open: { height: 'auto', opacity: 1 } }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="parchment-body p-8"
-                    >
-                        {activeCategory !== 'all' && (
-                            <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
-                                {activeCategory} Events
-                            </h2>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-6">
-                            {filtered.map((event) => (
-                                <EventCard key={event.id} event={event} />
-                            ))}
-                        </div>
-                    </motion.div>
-                    <motion.div variants={{ closed: { y: -10 }, open: { y: 0 } }} className="scroll-roll" />
-                </motion.div>
+                <ScrollWrapper className="rounded-none">
+                    {activeCategory !== 'all' && (
+                        <h2 className="font-ancient text-2xl uppercase tracking-[0.2em] text-[#3d2b1f] mb-8 border-b border-[#3d2b1f]/20 pb-4">
+                            {activeCategory} Events
+                        </h2>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 torn-dark-panel p-6">
+                        {filtered.map((event) => (
+                            <EventCard key={event.id} event={event} />
+                        ))}
+                    </div>
+                </ScrollWrapper>
             )}
 
             {filtered.length === 0 && (

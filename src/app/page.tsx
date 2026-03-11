@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { ArrowRight, Sparkles, MapPin } from 'lucide-react';
+import { ArrowRight, Sparkles, Clock, MapPin } from 'lucide-react';
 import { scheduleData } from '@/lib/constants';
 import { getActiveEvents } from '@/lib/events-catalog';
 import { motion, useScroll, useTransform } from 'framer-motion';
@@ -231,59 +231,53 @@ export default function HomePage() {
                             transition={{ duration: 0.6 }}
                             className="space-y-6"
                         >
-                            <div className="mb-10 relative">
-                                {(() => {
-                                    const dateParts = scheduleData[activeDay].date.split(' ');
-                                    const month = dateParts[0];
-                                    const dateNum = dateParts[1].replace(',', '');
-                                    const dayLabel = dateParts[dateParts.length - 2] + ' ' + dateParts[dateParts.length - 1];
+                            {(() => {
+                                const dateParts = scheduleData[activeDay].date.split(' ');
+                                const month = dateParts[0];
+                                const dateNum = dateParts[1]?.replace(',', '') || '';
+                                const dayLabel = (dateParts[dateParts.length - 2] || '') + ' ' + (dateParts[dateParts.length - 1] || '');
 
-                                    return (
-                                        <div className="flex flex-col items-center">
-                                            {/* Compact Elegant Date Group */}
-                                            <div className="relative py-6 px-10 md:px-14 border border-manthan-gold/20 rounded-2xl bg-manthan-black/20 backdrop-blur-md flex flex-col items-center group overflow-hidden">
-                                                {/* Ambient Glow */}
-                                                <div className="absolute -inset-10 bg-manthan-gold/5 blur-2xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
-
-                                                <div className="relative flex flex-col items-center">
-                                                    <span className="font-ancient text-manthan-gold/60 tracking-[0.4em] uppercase text-[10px] mb-2 font-bold">
-                                                        {dayLabel}
+                                return (
+                                    <div className="flex flex-col items-center">
+                                        <div className="relative py-6 px-10 md:px-14 border border-manthan-gold/20 rounded-2xl bg-manthan-black/20 backdrop-blur-md flex flex-col items-center group overflow-hidden">
+                                            <div className="absolute -inset-10 bg-manthan-gold/5 blur-2xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+                                            <div className="relative flex flex-col items-center">
+                                                <span className="font-ancient text-manthan-gold/60 tracking-[0.4em] uppercase text-[10px] mb-2 font-bold">
+                                                    {dayLabel}
+                                                </span>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="font-ancient text-4xl md:text-6xl font-black text-gold-gradient select-none">
+                                                        {dateNum}
                                                     </span>
-
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="font-ancient text-4xl md:text-6xl font-black text-gold-gradient select-none">
-                                                            {dateNum}
+                                                    <div className="w-px h-8 bg-manthan-gold/30" />
+                                                    <div className="flex flex-col items-start">
+                                                        <span className="font-ancient text-xl md:text-2xl font-bold text-manthan-gold uppercase tracking-widest leading-none">
+                                                            {month}
                                                         </span>
-                                                        <div className="w-px h-8 bg-manthan-gold/30" />
-                                                        <div className="flex flex-col items-start">
-                                                            <span className="font-ancient text-xl md:text-2xl font-bold text-manthan-gold uppercase tracking-widest leading-none">
-                                                                {month}
-                                                            </span>
-                                                            <span className="font-pfeffer text-[8px] md:text-[10px] tracking-[0.1em] text-manthan-gold/40 mt-1 uppercase">
-                                                                March MMXXVI
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-4 flex items-center gap-3 px-4 py-1.5 bg-manthan-gold/10 rounded-full border border-manthan-gold/10">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-manthan-gold animate-pulse" />
-                                                        <span className="font-ancient text-sm md:text-base font-bold text-manthan-gold uppercase tracking-[0.3em]">
-                                                            09:00 AM <span className="text-manthan-gold/40 font-pfeffer text-[10px] lowercase tracking-normal italic">onwards</span>
+                                                        <span className="font-pfeffer text-[8px] md:text-[10px] tracking-[0.1em] text-manthan-gold/40 mt-1 uppercase">
+                                                            March MMXXVI
                                                         </span>
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-manthan-gold animate-pulse" />
                                                     </div>
+                                                </div>
+                                                <div className="mt-4 flex items-center gap-3 px-4 py-1.5 bg-manthan-gold/10 rounded-full border border-manthan-gold/10">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-manthan-gold animate-pulse" />
+                                                    <span className="font-ancient text-sm md:text-base font-bold text-manthan-gold uppercase tracking-[0.3em]">
+                                                        09:00 AM <span className="text-manthan-gold/40 font-pfeffer text-[10px] lowercase tracking-normal italic">onwards</span>
+                                                    </span>
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-manthan-gold animate-pulse" />
                                                 </div>
                                             </div>
                                         </div>
-                                    );
-                                })()}
-                            </div>
+                                    </div>
+                                );
+                            })()}
 
                             <ScrollWrapper padding="p-2 sm:p-4 md:p-8">
                                 <div className="overflow-x-auto custom-scrollbar-thin">
                                     <table className="w-full text-left border-collapse font-serif text-[#3d2b1f]">
                                         <thead>
                                             <tr className="border-b-2 border-manthan-maroon/20">
+                                                <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Time</th>
                                                 <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Chronicle (Event)</th>
                                                 <th className="py-2 px-2 md:py-4 md:px-4 font-ancient text-manthan-maroon uppercase tracking-widest text-xs md:text-base">Realm (Venue)</th>
                                             </tr>
@@ -291,6 +285,12 @@ export default function HomePage() {
                                         <tbody className="divide-y divide-manthan-maroon/10">
                                             {scheduleData[activeDay].slots.map((slot, index) => (
                                                 <tr key={index} className="hover:bg-manthan-maroon/5 transition-colors group">
+                                                    <td className="py-2 px-2 md:py-4 md:px-4 text-[#3d2b1f] font-bold text-[10px] md:text-sm whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5 md:gap-2">
+                                                            <Clock size={14} className="text-manthan-maroon/60" />
+                                                            {slot.time}
+                                                        </div>
+                                                    </td>
                                                     <td className="py-2 px-2 md:py-4 md:px-4">
                                                         <div className="flex flex-col">
                                                             <span className="text-[#1a0a0a] font-ancient font-bold text-xs md:text-lg tracking-wider group-hover:text-manthan-maroon transition-colors line-clamp-2 md:line-clamp-none">

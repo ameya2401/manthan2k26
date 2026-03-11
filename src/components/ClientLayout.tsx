@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import VideoIntro from './VideoIntro';
-import FlashlightPreloader from './FlashlightPreloader';
+import LogoLoading from './LogoLoading';
 const Chatbot = dynamic(() => import('./Chatbot'), { ssr: false });
 import { usePathname } from 'next/navigation';
 
@@ -20,9 +20,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const isLandingPage = pathname === '/';
 
     const [introComplete, setIntroComplete] = useState(false);
+    const [isPreloading, setIsPreloading] = useState(isLandingPage); // Only preload if on landing page
     const [isLoopFading, setIsLoopFading] = useState(false);
     const [bgVideoReady, setBgVideoReady] = useState(false);
-    const [isAppMounted, setIsAppMounted] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const backgroundPlayedRef = useRef(false);
     const restartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,9 +32,33 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const loopFadeOpacity = 0.28;
 
     useEffect(() => {
-        // Instant mount for preloader
-        setIsAppMounted(true);
-    }, []);
+
+        if (!isLandingPage) {
+            setIsPreloading(false);
+            return;
+        }
+
+        // Logic for landing page: Wait for the intro video to be ready
+        const introVideoSrc = 'https://manthan-cdn.ameyabhagat24.workers.dev/p2.mp4';
+        const v = document.createElement('video');
+        v.src = introVideoSrc;
+        v.preload = 'auto';
+        
+        const handleVideoReady = () => {
+            setIsPreloading(false);
+        };
+
+        // If video is already cached, it might be ready very quickly
+        v.addEventListener('canplaythrough', handleVideoReady);
+        
+        // Safety fallback: Don't keep user waiting forever if there's a network issue
+        const timer = setTimeout(handleVideoReady, 6000); 
+
+        return () => {
+            v.removeEventListener('canplaythrough', handleVideoReady);
+            clearTimeout(timer);
+        };
+    }, [isLandingPage]);
 
     // Fade near the natural end of the clip so final frames are always visible.
     const handleTimeUpdate = () => {
@@ -53,6 +77,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             }
         }
     };
+    
+    // ... handleVideoLoop and other effects ...
 
     const handleVideoLoop = () => {
         const video = videoRef.current;
@@ -70,14 +96,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             setIsLoopFading(false);
         }, 280);
     };
-
-    useEffect(() => {
-        return () => {
-            if (restartTimeoutRef.current) {
-                clearTimeout(restartTimeoutRef.current);
-            }
-        };
-    }, []);
 
     useEffect(() => {
         if ((introComplete || !isLandingPage) && videoRef.current && !backgroundPlayedRef.current) {
@@ -103,19 +121,26 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     return (
         <IntroContext.Provider value={{ introComplete, setIntroComplete }}>
-            {/* Instant Preloader - Disappears once app is ready for intro */}
-            <AnimatePresence>
-                {!isAppMounted && <FlashlightPreloader key="preloader" />}
-            </AnimatePresence>
-
             {/* Global Solid Background - Prevents white flash */}
             <div className="fixed inset-0 bg-manthan-black -z-20" />
 
-            {/* Global Intro - Handles both first load and refresh */}
+            {/* Global Intro Sequence - Chained transition */}
             <AnimatePresence mode="wait">
-                {isLandingPage && !introComplete && (
-                    <VideoIntro key="intro" onComplete={() => setIntroComplete(true)} />
-                )}
+                {isPreloading ? (
+                    <motion.div
+                        key="logo-loading-layer"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                        className="fixed inset-0 z-[10000] bg-black flex items-center justify-center overflow-hidden"
+                    >
+                        <LogoLoading />
+                        {/* Ambient Glow behind logo */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05)_0%,transparent_70%)] pointer-events-none" />
+                    </motion.div>
+                ) : (isLandingPage && !introComplete) ? (
+                    <VideoIntro key="video-intro-layer" onComplete={() => setIntroComplete(true)} />
+                ) : null}
             </AnimatePresence>
 
             {/* Global Background Video - Optimized loading */}

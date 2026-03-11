@@ -11,11 +11,8 @@ import {
     formatFee,
     categoryIcons,
 } from '@/lib/constants';
-import {
-    ArrowLeft, ArrowRight, Check, CreditCard, AlertTriangle,
-    User, Mail, Phone, Building, GraduationCap, BookOpen,
-    ShieldCheck
-} from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Mail, Phone, Building, GraduationCap, BookOpen, Check, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
+import ScrollWrapper from '@/components/ScrollWrapper';
 
 declare global {
     interface Window {
@@ -525,78 +522,74 @@ function RegisterForm() {
             {/* Form Content */}
             <div className="flex-1 flex flex-col items-center justify-start px-6 py-8 sm:py-12 overflow-y-auto">
                 <div className="w-full max-w-2xl overflow-visible">
-                    <div className="parchment-container rounded-none parchment-theme">
-                        <div className="scroll-roll" />
-                        <div className="parchment-body p-4 sm:p-10 shrink-0">
-                            <AnimatePresence mode="wait" custom={direction}>
-                                {step === 1 && (
-                                    <motion.div
-                                        key="basic-info"
-                                        custom={direction}
-                                        variants={slideVariants}
-                                        initial="enter"
-                                        animate="center"
-                                        exit="exit"
-                                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                                    >
-                                        <BasicInfoStep
-                                            formData={formData}
-                                            setFormData={setFormData}
-                                            errors={errors}
-                                            focusedField={focusedField}
-                                            setFocusedField={setFocusedField}
-                                            onNext={goNext}
-                                        />
-                                    </motion.div>
-                                )}
+                    <ScrollWrapper className="rounded-none parchment-theme" padding="p-4 sm:p-10">
+                        <AnimatePresence mode="wait" custom={direction}>
+                            {step === 1 && (
+                                <motion.div
+                                    key="basic-info"
+                                    custom={direction}
+                                    variants={slideVariants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                >
+                                    <BasicInfoStep
+                                        formData={formData}
+                                        setFormData={setFormData}
+                                        errors={errors}
+                                        focusedField={focusedField}
+                                        setFocusedField={setFocusedField}
+                                        onNext={goNext}
+                                    />
+                                </motion.div>
+                            )}
 
-                                {step === 2 && (
-                                    <motion.div
-                                        key="events"
-                                        custom={direction}
-                                        variants={slideVariants}
-                                        initial="enter"
-                                        animate="center"
-                                        exit="exit"
-                                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                                    >
-                                        <EventSelectionStep
-                                            events={events}
-                                            selectedIds={selectedIds}
-                                            toggleEvent={toggleEvent}
-                                            error={errors.events}
-                                            previewTotal={previewTotal}
-                                            teamRegistrations={teamRegistrations}
-                                            updateTeamRegistration={updateTeamRegistration}
-                                        />
-                                    </motion.div>
-                                )}
+                            {step === 2 && (
+                                <motion.div
+                                    key="events"
+                                    custom={direction}
+                                    variants={slideVariants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                >
+                                    <EventSelectionStep
+                                        events={events}
+                                        selectedIds={selectedIds}
+                                        toggleEvent={toggleEvent}
+                                        error={errors.events}
+                                        previewTotal={previewTotal}
+                                        teamRegistrations={teamRegistrations}
+                                        updateTeamRegistration={updateTeamRegistration}
+                                    />
+                                </motion.div>
+                            )}
 
-                                {step === 3 && (
-                                    <motion.div
-                                        key="payment"
-                                        custom={direction}
-                                        variants={slideVariants}
-                                        initial="enter"
-                                        animate="center"
-                                        exit="exit"
-                                        transition={{ duration: 0.3, ease: 'easeOut' }}
-                                    >
-                                        <PaymentStep
-                                            formData={formData}
-                                            selectedEvents={selectedEvents}
-                                            previewTotal={previewTotal}
-                                            teamRegistrations={teamRegistrations}
-                                            razorpayReady={razorpayReady}
-                                            paymentMessage={paymentMessage}
-                                            paymentError={paymentError}
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                        <div className="scroll-roll rotate-180" />
-                    </div>
+                            {step === 3 && (
+                                <motion.div
+                                    key="payment"
+                                    custom={direction}
+                                    variants={slideVariants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                                >
+                                    <PaymentStep
+                                        formData={formData}
+                                        selectedEvents={selectedEvents}
+                                        previewTotal={previewTotal}
+                                        teamRegistrations={teamRegistrations}
+                                        razorpayReady={razorpayReady}
+                                        paymentMessage={paymentMessage}
+                                        paymentError={paymentError}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </ScrollWrapper>
 
                     {/* Bottom Navigation */}
                     <div className="px-6 py-8">
