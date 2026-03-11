@@ -184,7 +184,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 {children}
 
                 {/* Chatbot - Prioritized delay */}
-                {(introComplete || !isLandingPage) && (
+                {(introComplete || !isLandingPage) && !pathname?.startsWith('/admin') && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

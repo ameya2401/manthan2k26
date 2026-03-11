@@ -13,6 +13,7 @@ import {
 } from '@/lib/constants';
 import { ArrowLeft, ArrowRight, User, Mail, Phone, Building, GraduationCap, BookOpen, Check, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
 import ScrollWrapper from '@/components/ScrollWrapper';
+import PaymentOverlay from '@/components/PaymentOverlay';
 
 declare global {
     interface Window {
@@ -36,7 +37,7 @@ interface RazorpayFailureResponse {
 
 
 
-const yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'PG 1st Year', 'PG 2nd Year'];
+const yearOptions = ['UG', 'PG'];
 const steps = [
     { id: 1, label: 'Basic Info' },
     { id: 2, label: 'Events' },
@@ -125,6 +126,8 @@ function RegisterForm() {
     const [razorpayReady, setRazorpayReady] = useState(false);
     const [paymentMessage, setPaymentMessage] = useState('');
     const [paymentError, setPaymentError] = useState('');
+    const [showOverlay, setShowOverlay] = useState(false);
+    const [overlayStatus, setOverlayStatus] = useState<'verifying' | 'success' | 'redirecting' | 'error'>('verifying');
     const [focusedField, setFocusedField] = useState<string | null>(null);
 
     // Fetch events and handle pre-selection resolution
@@ -375,6 +378,8 @@ function RegisterForm() {
                 order_id: order.id,
                 handler: async function (response: RazorpaySuccessResponse) {
                     setPaymentMessage('Verifying payment...');
+                    setOverlayStatus('verifying');
+                    setShowOverlay(true);
                     try {
                         const verifyRes = await fetch('/api/payment/verify', {
                             method: 'POST',
@@ -389,16 +394,23 @@ function RegisterForm() {
                         const verifyData = await verifyRes.json();
                         if (verifyRes.ok) {
                             setPaymentMessage('Registration successful! Redirecting...');
+                            setOverlayStatus('success');
                             setTimeout(() => {
-                                window.location.href = `/confirmation/${verifyData.ticket_id}`;
-                            }, 1500);
+                                setOverlayStatus('redirecting');
+                                setTimeout(() => {
+                                    window.location.href = `/confirmation/${verifyData.ticket_id}`;
+                                }, 1000); // Reduced delay
+                            }, 1500); // Reduced delay
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed.');
                         }
                     } catch (err: unknown) {
                         const message = err instanceof Error ? err.message : 'Verification failed. Please contact support.';
                         setPaymentError(message);
+                        setOverlayStatus('error');
                         setProcessing(false);
+                        // Hide overlay after 3 seconds if there is an error
+                        setTimeout(() => setShowOverlay(false), 4000);
                     }
                 },
                 prefill: {
@@ -642,6 +654,12 @@ function RegisterForm() {
             <div className="mt-auto">
                 <Footer />
             </div>
+
+            <PaymentOverlay 
+                isOpen={showOverlay}
+                status={overlayStatus}
+                errorMessage={paymentError}
+            />
         </div>
     );
 }

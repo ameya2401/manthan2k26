@@ -212,7 +212,7 @@ select:-webkit-autofill:focus {
         text-wrap: balance;
     }
 
-    .parchment-bg {
+    .parchment-bg, .parchment-theme {
         background-color: #f4e4bc;
         color: #2c1e0f;
     }

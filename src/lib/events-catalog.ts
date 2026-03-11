@@ -53,7 +53,7 @@ export const EVENT_CATALOG: Event[] = [
         description: 'Lead: Shravan. Fast fingers. Faster victory.',
         long_description: 'Typing Competition event focused on speed and precision where participants compete on organizer-selected software with scoring based on WPM and accuracy.',
         category: 'technical',
-        fee: 8000,
+        fee: 5000,
         fee_calculation: 'per_participant',
         max_participants: 200,
         current_participants: 0,
