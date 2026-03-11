@@ -21,23 +21,23 @@ const FAQS = [
     },
     {
         keywords: ['explore events', 'view events', 'event categories', 'events'],
-        answer: "We have a thrilling lineup for 2026:\n• TECHNICAL: Prompt2Website, TypeSprint, QuizStorm, CanvaCraft\n• CULTURAL: NrityaVerse (Dance), SurTarang (Singing)\n• SPORTS: Cricket, Volleyball, Badminton, BGMI, Fitness & Board Games",
-        options: ['Technical Events', 'Cultural Events', 'Sports Events']
+        answer: "We have a thrilling lineup for 2026:\n• TECHNICAL: VantraSutra (AI Website Building), Akshar Vedha (Typing), Gyansabha (Quiz), Rachnatmak Kala (Canva)\n• CULTURAL: Ekal / Samuha Nritya (Dance), Swara Ekam / Sangam (Singing)\n• SPORTS: Kanduk Kshetra (Cricket), Vayu Kanduk (Volleyball), Vayu Krida (Badminton), Digital Yuddh (BGMI), Fitness & Board Games",
+        options: ['Technical Events', 'Cultural Events', 'Sports Events', 'Schedule']
     },
     {
         keywords: ['technical events', 'technical'],
-        answer: "Sharpen your intellect at our Tech Arena:\n• Prompt2Website: AI Website Building challenge\n• TypeSprint: The Ultimate Typing Showdown\n• QuizStorm: Battle of Brains\n• CanvaCraft: Poster Design challenge",
-        options: ['Prompt2Website', 'TypeSprint', 'QuizStorm', 'Registration']
+        answer: "Sharpen your intellect at our Tech Arena:\n• VantraSutra: AI Website Building challenge\n• Akshar Vedha: The Ultimate Typing Showdown\n• Gyansabha: Battle of Brains\n• Rachnatmak Kala: Poster Design challenge",
+        options: ['VantraSutra (AI Website Building)', 'Akshar Vedha (Typing Competition)', 'Gyansabha (Quiz Competition)', 'Registration']
     },
     {
         keywords: ['cultural events', 'cultural'],
-        answer: "Experience the magic of performance:\n• NrityaVerse: Dance competition (Solo/Group)\n• SurTarang: Singing competition (Solo/Group)\nHeld on the Main Stage and Seminar Hall.",
-        options: ['NrityaVerse', 'SurTarang', 'Registration']
+        answer: "Experience the magic of performance:\n• Ekal / Samuha Nritya: Dance competition (Solo/Group)\n• Swara Sangam / Ekam: Singing competition (Solo/Group)\nHeld on the Main Stage and Seminar Hall.",
+        options: ['Ekal / Samuha Nritya (Dance)', 'Swara Ekam / Sangam (Singing)', 'Registration']
     },
     {
         keywords: ['sports events', 'sports', 'games'],
-        answer: "Fuel your competitive spirit:\n• Outdoor: Box Cricket, Volleyball, Badminton, Tug of War\n• Indoor: Chess, Carrom, Ludo\n• Fitness: Deadlift, Bench Press\n• E-Sports: BGMI Squad Battle",
-        options: ['Box Cricket', 'BGMI', 'Badminton', 'Registration']
+        answer: "Fuel your competitive spirit:\n• Outdoor: Kanduk Kshetra (Box Cricket), Vayu Kanduk (Volleyball), Vayu Krida (Badminton), Rassa Yuddh (Tug of War)\n• Indoor: Chaturang (Chess), Chakra Sangram (Carrom), Chatur Yatra (Ludo)\n• Fitness: Bhu Utthaan (Deadlift), Bahu Bal (Bench Press)\n• E-Sports: Digital Yuddh (BGMI) Squad Battle",
+        options: ['Kanduk Kshetra (Box Cricket)', 'Digital Yuddh (BGMI)', 'Vayu Krida (Badminton)', 'Registration']
     },
     {
         keywords: ['registration', 'register', 'how to register', 'sign up'],
