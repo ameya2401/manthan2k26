@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch cash entries' }, { status: 500 });
     }
 
-    const rows: any[] = [];
+    const rows: Record<string, string>[] = [];
 
     // Add Cash Registrations to rows
     (cashRegistrations || []).forEach(reg => {

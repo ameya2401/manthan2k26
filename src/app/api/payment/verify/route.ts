@@ -242,7 +242,7 @@ Pass Status: VERIFIED & PAID`;
                     phone: registration.phone || "N/A",
                     college: registration.college || "N/A",
                     totalAmount: `₹${registration.total_amount || 0}`,
-                    events: registeredEvents as any,
+                    events: registeredEvents as Array<{ name: string; venue: string; event_date: string }>,
                 }).then(result => {
                     if (result.success) {
                         console.log(`✅ Event pass email sent to ${registration.email}`);
