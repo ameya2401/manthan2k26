@@ -46,7 +46,7 @@ const FAQS = [
     },
     {
         keywords: ['fee', 'payment', 'cost', 'price'],
-        answer: "Fees vary by event:\n• Technical: ₹50 - ₹80\n• Cultural: ₹200 (Solo) / ₹400 (Group)\n• Sports: Vary by team size (e.g., Cricket ₹950/team)\nCheck the specific event details on the registration portal.",
+        answer: "Fees vary by event:\n• Technical: ₹40 - ₹50\n• Cultural: ₹200 (Solo) / ₹400 (Group)\n• Sports: Vary by team size (e.g., Cricket ₹950/team)\nCheck the specific event details on the registration portal.",
         options: ['Registration', 'Contact Support']
     },
     {
