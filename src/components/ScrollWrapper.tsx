@@ -15,35 +15,23 @@ export default function ScrollWrapper({ children, className = '', padding = 'p-8
         <motion.div
             initial="closed"
             whileInView="open"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "400px" }}
             className={`parchment-container ${className}`}
         >
-            <motion.div
-                variants={{
-                    closed: { y: 10 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
 
             <motion.div
                 variants={{
-                    closed: { height: 0, opacity: 0 },
-                    open: { height: 'auto', opacity: 1 }
+                    closed: { opacity: 0 },
+                    open: { opacity: 1 }
                 }}
-                transition={{ duration: speed, ease: "easeOut" }}
+                transition={{ duration: speed === 1 ? 0.2 : speed, ease: speed === 1 ? "linear" : "easeOut" }}
                 className={`parchment-body ${padding}`}
             >
                 {children}
             </motion.div>
 
-            <motion.div
-                variants={{
-                    closed: { y: -10 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
         </motion.div>
     );
 }

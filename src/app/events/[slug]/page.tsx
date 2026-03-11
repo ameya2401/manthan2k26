@@ -6,30 +6,22 @@ import Link from 'next/link';
 import { Calendar, MapPin, Users, IndianRupee } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
-import { getEventBySlug } from '@/lib/events-catalog';
+import { getEventBySlug, getActiveEvents } from '@/lib/events-catalog';
 import BackButton from '@/components/BackButton';
 
-async function getEvent(slug: string): Promise<Event | null> {
-    try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/events`, { cache: 'no-store' });
-        const data = await res.json();
-        const events = data.events || [];
-        const event = events.find((e: Event) => e.slug === slug);
-        return event || getEventBySlug(slug) || null;
-    } catch {
-        return getEventBySlug(slug) || null;
-    }
+export async function generateStaticParams() {
+    const events = getActiveEvents();
+    return events.map((event: Event) => ({
+        slug: event.slug,
+    }));
 }
 
-export const dynamic = 'force-dynamic';
-
-export default async function EventDetailPage({
+export default function EventDetailPage({
     params,
 }: {
     params: { slug: string };
 }) {
-    const event = await getEvent(params.slug);
+    const event = getEventBySlug(params.slug);
 
     if (!event) {
         notFound();

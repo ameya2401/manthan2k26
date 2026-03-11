@@ -34,7 +34,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             initial="closed"
             whileInView="open"
             whileTap={{ scale: 0.98 }}
-            viewport={{ once: true, margin: "-20px" }}
+            viewport={{ once: true, margin: "300px" }}
             className={`parchment-card transition-all duration-300 cursor-pointer group ${selected
                 ? 'scale-[1.02] z-20'
                 : 'hover:rotate-1'
@@ -42,32 +42,16 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             onClick={() => selectable && onToggle?.(event.id)}
         >
             {/* Top Roll */}
-            <motion.div
-                variants={{
-                    closed: { y: 3 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
 
             {/* Scroll Body (Expanding) */}
             <motion.div
                 variants={{
-                    closed: { 
-                        opacity: 0, 
-                        scaleY: 0.95, 
-                        transformOrigin: 'top' 
-                    },
-                    open: { 
-                        opacity: 1,
-                        scaleY: 1,
-                        transition: { 
-                            duration: 0.4, 
-                            ease: [0.22, 1, 0.36, 1] 
-                        }
-                    }
+                    closed: { opacity: 0 },
+                    open: { opacity: 1 }
                 }}
-                className="parchment-body p-6 will-change-transform"
+                transition={{ duration: 0.2, ease: "linear" }}
+                className="parchment-body p-6"
             >
                 {/* Category Badge */}
                 <div className="flex items-center justify-between mb-4">
@@ -141,13 +125,7 @@ export default function EventCard({ event, selected, onToggle, selectable }: Eve
             </motion.div>
 
             {/* Bottom Roll */}
-            <motion.div
-                variants={{
-                    closed: { y: -3 },
-                    open: { y: 0 }
-                }}
-                className="scroll-roll"
-            />
+            <div className="scroll-roll" />
         </motion.div>
     );
 

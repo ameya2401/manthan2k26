@@ -9,24 +9,23 @@ export const metadata = {
     description: 'Explore all events at Manthan 2026 tech fest',
 };
 
-export default async function EventsPage() {
-    // Priority: Fast pre-rendered content for instant load
-    let events = getActiveEvents();
+export const dynamic = 'force-dynamic';
 
-    // Optionally revalidate in background rather than blocking render
+export default async function EventsPage() {
+    // Fetch events server-side via internal API to avoid build-time Supabase client
+    let events = [];
     try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/events`, {
-            next: { revalidate: 3600 } // Cache for 1 hour, revalidate in background
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data.events && data.events.length > 0) {
-                events = data.events;
-            }
-        }
+        const res = await fetch(`${baseUrl}/api/events`, { cache: 'no-store' });
+        const data = await res.json();
+        events = data.events || [];
     } catch {
-        // Silently fallback to pre-rendered getActiveEvents() if API fails
+        events = [];
+    }
+
+    // Fallback to local catalog if API returns empty
+    if (events.length === 0) {
+        events = getActiveEvents();
     }
 
     return (
