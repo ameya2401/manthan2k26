@@ -28,6 +28,17 @@ export default function Navbar() {
     const activeLink = usePathname();
 
     useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
 
@@ -52,8 +63,8 @@ export default function Navbar() {
         <motion.nav
             initial={{ y: 0 }}
             animate={{
-                y: visible ? 0 : -100,
-                opacity: visible ? 1 : 0
+                y: (visible || isOpen) ? 0 : -100,
+                opacity: (visible || isOpen) ? 1 : 0
             }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 ${scrolled
@@ -61,9 +72,9 @@ export default function Navbar() {
                 : 'bg-transparent py-5'
                 }`}
         >
-            <div className="max-w-[1800px] mx-auto px-6 md:px-12 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-4 group relative z-[110]">
-                    <div className="relative w-14 h-14 md:w-16 md:h-16 transition-transform duration-500">
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2 sm:gap-4 group relative z-[110]">
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 transition-transform duration-500">
                         <Image
                             src="/bbbg-removebg-preview.png"
                             alt="Manthan Logo"
@@ -73,7 +84,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex flex-col relative">
-                        <span className={`font-pfeffer font-black tracking-[0.2em] leading-none transition-all duration-500 ${scrolled ? 'text-2xl md:text-3xl' : 'text-3xl md:text-5xl'
+                        <span className={`font-pfeffer font-black tracking-[0.1em] sm:tracking-[0.2em] leading-none transition-all duration-500 ${scrolled ? 'text-lg sm:text-2xl md:text-3xl' : 'text-2xl sm:text-3xl md:text-5xl'
                             } text-gold-gradient drop-shadow-[0_4px_12px_rgba(212,168,55,0.5)]`}>
                             manthan
                         </span>
@@ -143,10 +154,10 @@ export default function Navbar() {
                 {/* Mobile Menu Toggle */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="lg:hidden relative z-[110] p-4 text-manthan-gold bg-manthan-gold/5 hover:bg-manthan-gold/20 rounded-xl border border-manthan-gold/20 transition-all duration-300"
+                    className="lg:hidden relative z-[110] p-3 sm:p-4 text-manthan-gold bg-manthan-gold/5 hover:bg-manthan-gold/20 rounded-xl border border-manthan-gold/20 transition-all duration-300"
                     aria-label="Toggle menu"
                 >
-                    {isOpen ? <X size={36} /> : <Menu size={36} />}
+                    {isOpen ? <X size={28} className="sm:w-9 sm:h-9" /> : <Menu size={28} className="sm:w-9 sm:h-9" />}
                 </button>
             </div>
 
@@ -157,7 +168,7 @@ export default function Navbar() {
                         initial={{ opacity: 0, scale: 1.1 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="fixed inset-0 z-[105] bg-manthan-black flex flex-col items-center justify-start pt-32 pb-12 px-8 lg:hidden overflow-y-auto"
+                        className="fixed inset-0 z-[105] bg-manthan-black flex flex-col items-center justify-start pt-24 sm:pt-32 pb-12 px-6 sm:px-8 lg:hidden overflow-y-auto h-[100dvh]"
                     >
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(139,0,0,0.2)_0%,transparent_70%)]"></div>
@@ -181,16 +192,16 @@ export default function Navbar() {
                                     <Link
                                         href={link.href}
                                         onClick={() => setIsOpen(false)}
-                                        className="flex items-center justify-between group w-full py-6 border-b border-manthan-gold/10"
+                                        className="flex items-center justify-between group w-full py-4 sm:py-6 border-b border-manthan-gold/10"
                                     >
                                         <div className="flex flex-col">
-                                            <span className={`font-pfeffer text-3xl sm:text-4xl md:text-5xl tracking-[0.15em] transition-all duration-500 ${activeLink === link.href ? 'text-manthan-gold' : 'text-gray-500 group-hover:text-manthan-gold'
+                                            <span className={`font-pfeffer text-2xl sm:text-4xl md:text-5xl tracking-[0.1em] sm:tracking-[0.15em] transition-all duration-500 ${activeLink === link.href ? 'text-manthan-gold' : 'text-gray-500 group-hover:text-manthan-gold'
                                                 }`}>
                                                 {link.label}
                                             </span>
-                                            <span className="text-[10px] text-manthan-gold/30 uppercase tracking-[0.4em] mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Explore Realm</span>
+                                            <span className="text-[10px] text-manthan-gold/30 uppercase tracking-[0.4em] mt-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">Explore Realm</span>
                                         </div>
-                                        <ChevronRight size={40} className="text-manthan-gold opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-10 group-hover:translate-x-0" />
+                                        <ChevronRight size={24} className="text-manthan-gold opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-500 sm:-translate-x-10 sm:group-hover:translate-x-0" />
                                     </Link>
                                 </motion.div>
                             ))}

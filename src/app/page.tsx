@@ -60,14 +60,16 @@ export default function HomePage() {
                         }}
                         className="
                                 relative
-                                w-[85vw]
-                                h-[40vh]
+                                w-[90vw]
+                                h-[35vh]
+                                sm:w-[85vw]
+                                sm:h-[40vh]
                                 md:w-[75vw]
                                 md:h-[55vh]
                                 flex
                                 items-center
                                 justify-center
-                                mb-8
+                                mb-6
                                 md:mb-10
                                 "
                     >
@@ -103,7 +105,7 @@ export default function HomePage() {
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 1.2, duration: 1 }}
-                            className="mt-6 font-ancient text-xl md:text-3xl tracking-[0.25em] md:tracking-[0.35em] uppercase px-4 md:px-0"
+                            className="mt-6 font-ancient text-lg sm:text-xl md:text-3xl tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.35em] uppercase px-4 md:px-0"
                             style={{
                                 color: "#d4af37",
                                 textShadow: `
@@ -167,7 +169,7 @@ export default function HomePage() {
                             className="event-swiper !pb-20"
                         >
                             {events.map((event, idx) => (
-                                <SwiperSlide key={idx} className="!w-[300px] md:!w-[420px]">
+                                <SwiperSlide key={idx} className="!w-[280px] sm:!w-[340px] md:!w-[420px]">
                                     <Link href={`/events/${event.slug}`} className="block h-full transform transition-transform duration-500 hover:scale-105 active:scale-95">
                                         <ScrollWrapper padding="p-10" className="min-h-[480px]" speed={0.4}>
                                             <span className="font-ancient text-sm tracking-[0.3em] uppercase text-manthan-maroon mb-4 block underline decoration-manthan-maroon/20 underline-offset-8">
