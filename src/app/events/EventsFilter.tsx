@@ -35,13 +35,13 @@ export default function EventsFilter({ events }: { events: Event[] }) {
     return (
         <>
             {/* Filter Tabs */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12 parchment-container !p-6 rounded-none border-none shadow-none bg-transparent">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12 parchment-container !p-4 sm:!p-6 rounded-none border-none shadow-none bg-transparent">
                 {categories.map((cat) => (
                     <motion.button
                         key={cat}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setActiveCategory(cat)}
-                        className={`font-ancient px-8 py-3 transition-all duration-300 uppercase tracking-widest text-sm ${activeCategory === cat
+                        className={`font-ancient px-4 py-2 sm:px-8 sm:py-3 transition-all duration-300 uppercase tracking-widest text-[10px] sm:text-sm ${activeCategory === cat
                             ? 'bg-manthan-maroon text-white shadow-[0_0_20px_rgba(92,10,10,0.3)] scale-105'
                             : 'parchment-input hover:border-manthan-maroon/60'
                             }`}

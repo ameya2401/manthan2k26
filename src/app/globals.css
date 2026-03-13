@@ -136,6 +136,18 @@ h4,
     background: #8B0000;
 }
 
+/* Custom horizontal scroll for mobile tables */
+.custom-scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+}
+.custom-scrollbar-thin::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+.custom-scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(139, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
 /* Animations */
 @keyframes float {
 
@@ -231,21 +243,30 @@ select:-webkit-autofill:focus {
     .parchment-body::before {
         content: '';
         position: absolute;
-        inset: -5px -20px;
+        inset: -5px -10px;
+        @screen sm {
+            inset: -5px -20px;
+        }
         background: #f4e4bc;
         /* light brown / yellowish */
         background-image:
             radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 100%),
             url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         background-blend-mode: overlay;
-        box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
+        box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.2);
+        @screen sm {
+            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
+        }
         filter: url(#torn-edge);
         z-index: -1;
         pointer-events: none;
     }
 
     .scroll-roll {
-        height: 26px;
+        height: 18px;
+        @screen sm {
+            height: 26px;
+        }
         background: linear-gradient(to right,
                 #3d2b1f 0%,
                 #5c4033 15%,
@@ -257,7 +278,7 @@ select:-webkit-autofill:focus {
         position: relative;
         z-index: 10;
         box-shadow:
-            0 4px 15px rgba(0, 0, 0, 0.6),
+            0 4px 10px rgba(0, 0, 0, 0.4),
             inset 0 1px 1px rgba(255, 255, 255, 0.2),
             inset 0 -1px 3px rgba(0, 0, 0, 0.4);
     }
