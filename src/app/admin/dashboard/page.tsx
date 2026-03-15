@@ -629,7 +629,16 @@ export default function AdminDashboard() {
                                     const token = getToken();
                                     if (!token) return;
                                     try {
-                                        const res = await fetch('/api/admin/export', {
+                                        const params = new URLSearchParams();
+                                        if (statusFilter !== 'all') params.set('status', statusFilter);
+                                        if (eventFilter !== 'all') params.set('event_id', eventFilter);
+                                        if (search) params.set('search', search);
+                                        if (dateFilter) params.set('date', dateFilter);
+
+                                        const queryString = params.toString();
+                                        const exportUrl = `/api/admin/export${queryString ? `?${queryString}` : ''}`;
+
+                                        const res = await fetch(exportUrl, {
                                             headers: { Authorization: `Bearer ${token}` },
                                         });
                                         if (!res.ok) {

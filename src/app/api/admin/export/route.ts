@@ -111,12 +111,34 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const eventName = searchParams.get('event_name');
+    const status = searchParams.get('status');
+    const filterEventId = searchParams.get('event_id');
+    const search = searchParams.get('search');
+    const date = searchParams.get('date');
 
     // Query registrations directly from the table
-    const { data: registrations, error } = await supabaseAdmin
+    let query = supabaseAdmin
         .from('registrations')
         .select('ticket_id,name,email,phone,college,department,year,event_ids,team_registrations,total_amount,payment_status,created_at')
         .order('created_at', { ascending: false });
+
+    if (status && status !== 'all') {
+        query = query.eq('payment_status', status);
+    }
+
+    if (filterEventId && filterEventId !== 'all') {
+        query = query.contains('event_ids', [filterEventId]);
+    }
+
+    if (search) {
+        query = query.or(`ticket_id.ilike.%${search}%,name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    if (date) {
+        query = query.gte('created_at', `${date}T00:00:00`).lte('created_at', `${date}T23:59:59`);
+    }
+
+    const { data: registrations, error } = await query;
 
     if (error) {
         return NextResponse.json({ error: 'Failed to generate export data' }, { status: 500 });
@@ -136,6 +158,11 @@ export async function GET(request: NextRequest) {
             const eventInfo = eventMap.get(eventId);
             const eventNameStr = eventInfo?.name || eventId;
             const eventCategory = eventInfo?.category || 'unknown';
+
+            // Check event_id filter (strict match)
+            if (filterEventId && filterEventId !== 'all' && eventId !== filterEventId) {
+                continue;
+            }
 
             // Optional event_name filter
             if (eventName && eventName !== 'all' && !eventNameStr.toLowerCase().includes(eventName.toLowerCase())) {
