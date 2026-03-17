@@ -93,6 +93,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (admin.role === 'viewer') {
+        return NextResponse.json({ error: 'Forbidden. Viewer account cannot perform actions.' }, { status: 403 });
+    }
+
     try {
         const body = await request.json();
         const registrationId = body?.registration_id as string | undefined;
