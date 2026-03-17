@@ -7,7 +7,7 @@ import { formatFee } from '@/lib/constants';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import {
     LogOut, Search, Users, IndianRupee, CheckCircle,
-    Clock, RefreshCw, UserCheck, AlertCircle, ChevronDown, Download
+    Clock, RefreshCw, UserCheck, AlertCircle, ChevronDown, Download, RotateCcw
 } from 'lucide-react';
 
 interface Stats {
@@ -51,6 +51,7 @@ export default function AdminDashboard() {
 
     // Check-in state
     const [checkingIn, setCheckingIn] = useState<string | null>(null);
+    const [uncheckingIn, setUncheckingIn] = useState<string | null>(null);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
     // Tabs
@@ -297,6 +298,41 @@ export default function AdminDashboard() {
             alert('Check-in failed. Please try again.');
         } finally {
             setCheckingIn(null);
+        }
+    };
+
+    const handleUncheckIn = async (regId: string) => {
+        const token = getToken();
+        if (!token) return;
+
+        if (!confirm('Are you sure you want to undo this check-in?')) return;
+
+        setUncheckingIn(regId);
+        try {
+            const res = await fetch(`/api/admin/check-in/${regId}`, {
+                method: 'PATCH',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.error || 'Undo check-in failed');
+                return;
+            }
+
+            // Update local state
+            setRegistrations((prev) =>
+                prev.map((r) =>
+                    r.id === regId
+                        ? { ...r, checked_in: false, checked_in_at: null }
+                        : r
+                )
+            );
+            fetchStats();
+        } catch {
+            alert('Undo check-in failed. Please try again.');
+        } finally {
+            setUncheckingIn(null);
         }
     };
 
@@ -723,31 +759,47 @@ export default function AdminDashboard() {
                                                     <td className="px-4 py-3">
                                                         {reg.payment_status === 'PAID' ? (
                                                             reg.checked_in ? (
-                                                                <span className="flex items-center gap-1 text-green-400 text-xs">
-                                                                    <UserCheck size={14} />
-                                                                    Done
-                                                                </span>
-                                                            ) : (
-                                                                    isViewer ? (
-                                                                        <span className="text-gray-600 italic">View Only</span>
-                                                                    ) : (
+                                                                <div className="flex flex-col gap-1">
+                                                                    <span className="flex items-center gap-1 text-green-400 text-xs text-nowrap">
+                                                                        <UserCheck size={14} />
+                                                                        Done
+                                                                    </span>
+                                                                    {!isViewer && (
                                                                         <button
-                                                                            onClick={() => handleCheckIn(reg.id)}
-                                                                            disabled={checkingIn === reg.id}
-                                                                            className="px-3 py-1.5 bg-manthan-gold/10 text-manthan-gold text-xs rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                                                            onClick={() => handleUncheckIn(reg.id)}
+                                                                            disabled={uncheckingIn === reg.id}
+                                                                            className="text-[10px] text-manthan-gold/50 hover:text-manthan-gold flex items-center gap-1 transition-colors disabled:opacity-50"
                                                                         >
-                                                                            {checkingIn === reg.id ? (
-                                                                                <LoadingSpinner size="sm" />
+                                                                            {uncheckingIn === reg.id ? (
+                                                                                <RefreshCw size={10} className="animate-spin" />
                                                                             ) : (
-                                                                                <>
-                                                                                    <UserCheck size={12} />
-                                                                                    Check In
-                                                                                </>
+                                                                                <RotateCcw size={10} />
                                                                             )}
+                                                                            Undo
                                                                         </button>
-                                                                    )
-                                                                )
+                                                                    )}
+                                                                </div>
                                                             ) : (
+                                                                isViewer ? (
+                                                                    <span className="text-gray-600 italic">View Only</span>
+                                                                ) : (
+                                                                    <button
+                                                                        onClick={() => handleCheckIn(reg.id)}
+                                                                        disabled={checkingIn === reg.id}
+                                                                        className="px-3 py-1.5 bg-manthan-gold/10 text-manthan-gold text-xs rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                                                    >
+                                                                        {checkingIn === reg.id ? (
+                                                                            <LoadingSpinner size="sm" />
+                                                                        ) : (
+                                                                            <>
+                                                                                <UserCheck size={12} />
+                                                                                Check In
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                )
+                                                            )
+                                                        ) : (
                                                             <span className="text-gray-600 text-xs">—</span>
                                                         )}
                                                     </td>
