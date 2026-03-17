@@ -95,3 +95,53 @@ export async function POST(
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
+// PATCH - Undo check-in for a registration
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const admin = await verifyAdmin(request);
+    if (!admin) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (admin.role === 'viewer') {
+        return NextResponse.json({ error: 'Forbidden. Viewer account cannot perform actions.' }, { status: 403 });
+    }
+
+    try {
+        // Get the registration
+        const { data: registration, error: findError } = await supabaseAdmin
+            .from('registrations')
+            .select('*')
+            .eq('id', params.id)
+            .single();
+
+        if (findError || !registration) {
+            return NextResponse.json({ error: 'Registration not found' }, { status: 404 });
+        }
+
+        if (!registration.checked_in) {
+            return NextResponse.json({ error: 'Registration is not checked in' }, { status: 400 });
+        }
+
+        // Reset check-in status
+        const { error: updateError } = await supabaseAdmin
+            .from('registrations')
+            .update({
+                checked_in: false,
+                checked_in_at: null,
+                checked_in_by: null,
+            })
+            .eq('id', params.id);
+
+        if (updateError) {
+            return NextResponse.json({ error: 'Failed to undo check-in' }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, message: 'Check-in undone successfully' });
+    } catch {
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
