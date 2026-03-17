@@ -86,7 +86,7 @@ export default function AdminDashboard() {
         if (storedUser) {
             try {
                 setAdminUser(JSON.parse(storedUser));
-            } catch (e) {
+            } catch {
                 console.error('Failed to parse admin user');
             }
         }
