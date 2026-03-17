@@ -46,6 +46,10 @@ export async function POST(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (admin.role === 'viewer') {
+        return NextResponse.json({ error: 'Forbidden. Viewer account cannot perform actions.' }, { status: 403 });
+    }
+
     try {
         // Get the registration
         const { data: registration, error: findError } = await supabaseAdmin

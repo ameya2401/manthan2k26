@@ -95,7 +95,7 @@ export interface PaymentVerification {
 export interface AdminUser {
     id: string;
     email: string;
-    role: 'admin' | 'staff';
+    role: 'admin' | 'staff' | 'viewer';
     name: string | null;
     created_at: string;
 }

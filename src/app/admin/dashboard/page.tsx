@@ -79,6 +79,21 @@ export default function AdminDashboard() {
         notes: '',
     });
 
+    const [adminUser, setAdminUser] = useState<{ role: string; name: string } | null>(null);
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem('admin_user');
+        if (storedUser) {
+            try {
+                setAdminUser(JSON.parse(storedUser));
+            } catch {
+                console.error('Failed to parse admin user');
+            }
+        }
+    }, []);
+
+    const isViewer = adminUser?.role === 'viewer';
+
     const getToken = () => localStorage.getItem('admin_token');
 
     const fetchStats = useCallback(async () => {
@@ -464,7 +479,7 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                         <h1 className="font-heading text-xl font-bold text-gold-gradient">MANTHAN</h1>
                         <span className="text-xs text-manthan-gold/50 border border-manthan-gold/20 px-2 py-0.5 rounded">
-                            Admin Dashboard
+                            {isViewer ? 'Viewer' : 'Admin'} Dashboard
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -713,22 +728,26 @@ export default function AdminDashboard() {
                                                                     Done
                                                                 </span>
                                                             ) : (
-                                                                <button
-                                                                    onClick={() => handleCheckIn(reg.id)}
-                                                                    disabled={checkingIn === reg.id}
-                                                                    className="px-3 py-1.5 bg-manthan-gold/10 text-manthan-gold text-xs rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50 flex items-center gap-1"
-                                                                >
-                                                                    {checkingIn === reg.id ? (
-                                                                        <LoadingSpinner size="sm" />
+                                                                    isViewer ? (
+                                                                        <span className="text-gray-600 italic">View Only</span>
                                                                     ) : (
-                                                                        <>
-                                                                            <UserCheck size={12} />
-                                                                            Check In
-                                                                        </>
-                                                                    )}
-                                                                </button>
-                                                            )
-                                                        ) : (
+                                                                        <button
+                                                                            onClick={() => handleCheckIn(reg.id)}
+                                                                            disabled={checkingIn === reg.id}
+                                                                            className="px-3 py-1.5 bg-manthan-gold/10 text-manthan-gold text-xs rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50 flex items-center gap-1"
+                                                                        >
+                                                                            {checkingIn === reg.id ? (
+                                                                                <LoadingSpinner size="sm" />
+                                                                            ) : (
+                                                                                <>
+                                                                                    <UserCheck size={12} />
+                                                                                    Check In
+                                                                                </>
+                                                                            )}
+                                                                        </button>
+                                                                    )
+                                                                )
+                                                            ) : (
                                                             <span className="text-gray-600 text-xs">—</span>
                                                         )}
                                                     </td>
@@ -899,7 +918,8 @@ export default function AdminDashboard() {
                                                             min={1}
                                                             value={draft.cash_amount}
                                                             onChange={(e) => updateCashDraft(row.id, 'cash_amount', Number(e.target.value))}
-                                                            className="w-28 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none"
+                                                            className="w-28 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none disabled:opacity-50"
+                                                            disabled={isViewer}
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -907,7 +927,8 @@ export default function AdminDashboard() {
                                                             type="text"
                                                             value={draft.cash_receipt_number}
                                                             onChange={(e) => updateCashDraft(row.id, 'cash_receipt_number', e.target.value)}
-                                                            className="w-36 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none"
+                                                            className="w-36 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none disabled:opacity-50"
+                                                            disabled={isViewer}
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -915,13 +936,14 @@ export default function AdminDashboard() {
                                                             type="text"
                                                             value={draft.cash_notes}
                                                             onChange={(e) => updateCashDraft(row.id, 'cash_notes', e.target.value)}
-                                                            className="w-48 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none"
+                                                            className="w-48 px-3 py-2 rounded-lg bg-manthan-black/50 border border-manthan-gold/20 text-gray-200 text-xs focus:outline-none disabled:opacity-50"
+                                                            disabled={isViewer}
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <button
                                                             onClick={() => handleSaveCash(row.id)}
-                                                            disabled={savingCashId === row.id}
+                                                            disabled={savingCashId === row.id || isViewer}
                                                             className="px-3 py-2 bg-manthan-gold/10 text-manthan-gold text-xs rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50"
                                                         >
                                                             {savingCashId === row.id ? 'Saving...' : 'Save'}
@@ -1003,10 +1025,10 @@ export default function AdminDashboard() {
                             <div className="mt-4">
                                 <button
                                     onClick={handleAddManualEntry}
-                                    disabled={savingManual}
+                                    disabled={savingManual || isViewer}
                                     className="px-4 py-2.5 text-sm bg-manthan-gold/10 text-manthan-gold rounded-lg hover:bg-manthan-gold/20 transition-colors disabled:opacity-50"
                                 >
-                                    {savingManual ? 'Adding...' : 'Add Manual Entry'}
+                                    {isViewer ? 'View Only Mode' : (savingManual ? 'Adding...' : 'Add Manual Entry')}
                                 </button>
                             </div>
                         </div>
