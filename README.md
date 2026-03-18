@@ -110,4 +110,4 @@ npm run build
 ```
 
 ---
-Official platform for Manthan 2026. Designed and Developed for BVIMIT.
+Official platform for Manthan 2026. Designed and Developed for BVIMIT Navi Mumbai.
