@@ -2,14 +2,14 @@ const crypto = require('crypto');
 
 // --- Configuration ---
 // 1. URL of your deployed application or local server
-const SERVER_URL = 'http://localhost:3000'; // Change to production URL if needed 
+const SERVER_URL = 'https://bvimitmanthan.vercel.app'; // Change to production URL if needed 
 
 // 2. The webhook secret you configured in .env.local (RAZORPAY_WEBHOOK_SECRET)
-const WEBHOOK_SECRET = 'your_webhook_secret_here'; 
+const WEBHOOK_SECRET = 'manthan2k26';
 
 // 3. The Order ID and Payment ID of the person who missed their pass
-const ORDER_ID = 'order_XXXXXXXXXX'; 
-const PAYMENT_ID = 'pay_XXXXXXXXXX';
+const ORDER_ID = 'order_ST7VQ4vNUL7Yee';
+const PAYMENT_ID = 'pay_ST7VfaXD5ulVtv';
 
 // --- Script ---
 async function simulateWebhook() {
