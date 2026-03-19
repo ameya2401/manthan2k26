@@ -146,18 +146,34 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find the pending registration
+        // Find the registration regardless of pending status
         const { data: registration, error: findError } = await supabaseAdmin
             .from('registrations')
             .select('*')
             .eq('razorpay_order_id', razorpay_order_id)
-            .eq('payment_status', 'PENDING')
             .single();
 
         if (findError || !registration) {
             return NextResponse.json(
-                { error: 'Registration not found or already processed.' },
+                { error: 'Registration not found.' },
                 { status: 404 }
+            );
+        }
+
+        // Check if the webhook has already verified the payment to avoid duplicate efforts
+        if (registration.payment_status === 'PAID') {
+             console.log(`Payment already verified by webhook for order ${razorpay_order_id}`);
+             return NextResponse.json({
+                 success: true,
+                 ticket_id: registration.ticket_id,
+                 message: 'Payment verified and registration confirmed (via webhook fallback)!',
+             });
+        }
+
+        if (registration.payment_status !== 'PENDING') {
+             return NextResponse.json(
+                { error: 'Registration already processed in another state.' },
+                { status: 400 }
             );
         }
 
