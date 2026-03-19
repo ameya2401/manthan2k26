@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         let event;
         try {
             event = JSON.parse(bodyText);
-        } catch (e) {
+        } catch {
             return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
         }
 
