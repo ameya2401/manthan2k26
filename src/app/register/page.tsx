@@ -11,28 +11,15 @@ import {
     formatFee,
     categoryIcons,
 } from '@/lib/constants';
-import { ArrowLeft, ArrowRight, User, Mail, Phone, Building, GraduationCap, BookOpen, Check, CreditCard, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Mail, Phone, Building, GraduationCap, BookOpen, Check, MessageCircle, ShieldCheck, AlertTriangle } from 'lucide-react';
 import ScrollWrapper from '@/components/ScrollWrapper';
-import PaymentOverlay from '@/components/PaymentOverlay';
 
-declare global {
-    interface Window {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Razorpay?: any;
-    }
-}
-
-interface RazorpaySuccessResponse {
-    razorpay_payment_id: string;
-    razorpay_order_id: string;
-    razorpay_signature: string;
-}
-
-interface RazorpayFailureResponse {
-    error: {
-        description: string;
-        code: string;
-    };
+interface CreateOrderResponse {
+    ticket_id: string;
+    payment_status: 'PENDING';
+    whatsapp_url: string;
+    coordinator_name?: string;
+    coordinator_phone?: string;
 }
 
 
@@ -123,11 +110,8 @@ function RegisterForm() {
     const [teamRegistrations, setTeamRegistrations] = useState<Record<string, TeamRegistration>>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [processing, setProcessing] = useState(false);
-    const [razorpayReady, setRazorpayReady] = useState(false);
     const [paymentMessage, setPaymentMessage] = useState('');
     const [paymentError, setPaymentError] = useState('');
-    const [showOverlay, setShowOverlay] = useState(false);
-    const [overlayStatus, setOverlayStatus] = useState<'verifying' | 'success' | 'redirecting' | 'error'>('verifying');
     const [focusedField, setFocusedField] = useState<string | null>(null);
 
     // Fetch events and handle pre-selection resolution
@@ -157,27 +141,6 @@ function RegisterForm() {
         }
         fetchEvents();
     }, [preselectedEvent]);
-
-    // Load Razorpay script
-    useEffect(() => {
-        if (typeof window !== 'undefined' && window.Razorpay) {
-            setRazorpayReady(true);
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.async = true;
-        script.onload = () => setRazorpayReady(true);
-        script.onerror = () => {
-            setRazorpayReady(false);
-            setPaymentError('Failed to load payment gateway. Please refresh and try again.');
-        };
-        document.body.appendChild(script);
-        return () => {
-            document.body.removeChild(script);
-        };
-    }, []);
 
     // Toggle event selection
     const toggleEvent = useCallback((id: string) => {
@@ -337,17 +300,15 @@ function RegisterForm() {
 
     // Handle payment
     const handlePayment = async () => {
-        if (!razorpayReady) {
-            setPaymentError('Payment gateway is still loading. Please wait a moment.');
-            return;
-        }
+        // Pre-open a tab synchronously from the click event to avoid popup blockers
+        const pendingWhatsappWindow = window.open('about:blank', '_blank');
 
         setProcessing(true);
         setPaymentError('');
-        setPaymentMessage('Opening secure portal...');
+        setPaymentMessage('Creating your registration and preparing WhatsApp...');
 
         try {
-            // 1. Create order on server
+            // Create pending registration and receive WhatsApp redirect URL
             const res = await fetch('/api/payment/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -365,84 +326,34 @@ function RegisterForm() {
                 throw new Error(errorMessage);
             }
 
-            const { order } = data;
+            const createOrderResponse = data as CreateOrderResponse;
 
-            // 2. Initialize Razorpay Checkout
-            const options = {
-                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-                amount: order.amount,
-                currency: order.currency,
-                name: 'Manthan 2K26',
-                description: `Payment for ${selectedIds.length} event(s)`,
-                image: '/logo.png', // Fallback to a placeholder if needed
-                order_id: order.id,
-                handler: async function (response: RazorpaySuccessResponse) {
-                    setPaymentMessage('Verifying payment...');
-                    setOverlayStatus('verifying');
-                    setShowOverlay(true);
-                    try {
-                        const verifyRes = await fetch('/api/payment/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                            }),
-                        });
-
-                        const verifyData = await verifyRes.json();
-                        if (verifyRes.ok) {
-                            setPaymentMessage('Registration successful! Redirecting...');
-                            setOverlayStatus('success');
-                            setTimeout(() => {
-                                setOverlayStatus('redirecting');
-                                setTimeout(() => {
-                                    window.location.href = `/confirmation/${verifyData.ticket_id}`;
-                                }, 1000); // Reduced delay
-                            }, 1500); // Reduced delay
-                        } else {
-                            throw new Error(verifyData.error || 'Payment verification failed.');
-                        }
-                    } catch (err: unknown) {
-                        const message = err instanceof Error ? err.message : 'Verification failed. Please contact support.';
-                        setPaymentError(message);
-                        setOverlayStatus('error');
-                        setProcessing(false);
-                        // Hide overlay after 3 seconds if there is an error
-                        setTimeout(() => setShowOverlay(false), 4000);
-                    }
-                },
-                prefill: {
-                    name: formData.name,
-                    email: formData.email,
-                    contact: formData.phone,
-                },
-                theme: {
-                    color: '#8B0000', // Manthan Maroon
-                },
-                modal: {
-                    ondismiss: function () {
-                        setProcessing(false);
-                        setPaymentMessage('');
-                        setPaymentError('Payment portal closed. Please try again when ready.');
-                    }
-                }
-            };
-
-            if (!window.Razorpay) {
-                throw new Error('Razorpay SDK failed to load. Please refresh the page.');
+            if (!createOrderResponse.whatsapp_url || !createOrderResponse.ticket_id) {
+                throw new Error('Invalid response from server. Please try again.');
             }
 
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', function (response: RazorpayFailureResponse) {
-                setPaymentError(`Payment failed: ${response.error.description}`);
-                setProcessing(false);
-                setPaymentMessage('');
-            });
-            rzp.open();
+            setPaymentMessage('Opening WhatsApp chat...');
+
+            // Reuse the pre-opened window if available; fallback to a new open attempt
+            if (pendingWhatsappWindow && !pendingWhatsappWindow.closed) {
+                pendingWhatsappWindow.location.replace(createOrderResponse.whatsapp_url);
+                pendingWhatsappWindow.focus();
+            } else {
+                window.open(createOrderResponse.whatsapp_url, '_blank');
+            }
+
+            const coordinatorName = encodeURIComponent(createOrderResponse.coordinator_name || 'the coordinator');
+            const coordinatorPhone = encodeURIComponent(createOrderResponse.coordinator_phone || '');
+            const encodedWhatsappUrl = encodeURIComponent(createOrderResponse.whatsapp_url);
+            // Give browser a brief moment to navigate popup before this tab redirects
+            window.setTimeout(() => {
+                window.location.href = `/payment-pending/${createOrderResponse.ticket_id}?coordinator=${coordinatorName}&phone=${coordinatorPhone}&wa=${encodedWhatsappUrl}`;
+            }, 250);
 
         } catch (err: unknown) {
+            if (pendingWhatsappWindow && !pendingWhatsappWindow.closed) {
+                pendingWhatsappWindow.close();
+            }
             console.error('Payment Error:', err);
             const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
             setPaymentError(message);
@@ -594,7 +505,6 @@ function RegisterForm() {
                                         selectedEvents={selectedEvents}
                                         previewTotal={previewTotal}
                                         teamRegistrations={teamRegistrations}
-                                        razorpayReady={razorpayReady}
                                         paymentMessage={paymentMessage}
                                         paymentError={paymentError}
                                     />
@@ -635,12 +545,12 @@ function RegisterForm() {
                                     {processing ? (
                                         <>
                                             <LoadingSpinner />
-                                            Processing...
+                                            Redirecting...
                                         </>
                                     ) : (
                                         <>
-                                            <CreditCard size={18} />
-                                            Pay {formatFee(previewTotal)}
+                                            <MessageCircle size={18} />
+                                            Pay via WhatsApp {formatFee(previewTotal)}
                                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform ml-1" />
                                         </>
                                     )}
@@ -654,12 +564,6 @@ function RegisterForm() {
             <div className="mt-auto">
                 <Footer />
             </div>
-
-            <PaymentOverlay 
-                isOpen={showOverlay}
-                status={overlayStatus}
-                errorMessage={paymentError}
-            />
         </div>
     );
 }
@@ -1145,7 +1049,6 @@ function PaymentStep({
     selectedEvents,
     previewTotal,
     teamRegistrations,
-    razorpayReady,
     paymentMessage,
     paymentError,
 }: {
@@ -1153,7 +1056,6 @@ function PaymentStep({
     selectedEvents: Event[];
     previewTotal: number;
     teamRegistrations: Record<string, TeamRegistration>;
-    razorpayReady: boolean;
     paymentMessage: string;
     paymentError: string;
 }) {
@@ -1217,18 +1119,9 @@ function PaymentStep({
             <div className="flex items-start gap-4 p-5 rounded-xl bg-manthan-maroon/5 border border-manthan-maroon/10">
                 <ShieldCheck size={20} className="text-manthan-maroon flex-shrink-0 mt-0.5" />
                 <p className="text-[#5c4033] text-[11px] font-ancient leading-relaxed italic">
-                    Transactions are secured by the Razorpay magic. Your registration shall be inscribed in the permanent archives once the gold has been received.
+                    Your registration is saved instantly. After clicking Pay, WhatsApp opens with your details so you can coordinate same-day UPI/QR payment with the coordinator.
                 </p>
             </div>
-
-            {!razorpayReady && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-manthan-crimson/5 border border-manthan-crimson/20">
-                    <AlertTriangle size={18} className="text-manthan-crimson flex-shrink-0" />
-                    <p className="text-manthan-crimson text-[11px] font-ancient uppercase tracking-wider">
-                        Portal is opening... please wait.
-                    </p>
-                </div>
-            )}
 
             {paymentMessage && (
                 <motion.div
