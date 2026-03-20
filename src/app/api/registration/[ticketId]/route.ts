@@ -13,7 +13,7 @@ export async function GET(
             .from('registrations')
             .select('*')
             .eq('ticket_id', ticketId)
-            .eq('payment_status', 'PAID')
+            .in('payment_status', ['PENDING', 'PAID'])
             .single();
 
         if (error || !registration) {

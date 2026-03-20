@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Razorpay from 'razorpay';
+import QRCode from 'qrcode';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { registrationSchema } from '@/lib/validations';
 import { generateTicketId, sanitizeInput } from '@/lib/constants';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { getEventsByIds } from '@/lib/events-catalog';
+import { EVENT_CATALOG, getEventsByIds } from '@/lib/events-catalog';
+import { sendTicketEmail } from '@/lib/mail-service';
 
 type TeamRegistrationPayload = {
     event_id: string;
@@ -52,14 +53,64 @@ function sanitizeTeamRegistrations(payload: TeamRegistrationPayload[]) {
     }));
 }
 
-function getRazorpay() {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-        throw new Error('Razorpay keys are not configured');
+function getWhatsAppConfig() {
+    const phone = process.env.WHATSAPP_PAYMENT_NUMBER?.replace(/\D/g, '');
+    const coordinatorName = process.env.WHATSAPP_COORDINATOR_NAME?.trim() || 'our coordinator';
+
+    if (!phone) {
+        throw new Error('WHATSAPP_PAYMENT_NUMBER is not configured');
     }
-    return new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
+
+    if (!/^\d{11,15}$/.test(phone)) {
+        throw new Error('WHATSAPP_PAYMENT_NUMBER must include country code and contain 11 to 15 digits');
+    }
+
+    return {
+        phone,
+        coordinatorName,
+    };
+}
+
+function formatAmountInINR(paise: number): string {
+    return `INR ${(paise / 100).toFixed(2)}`;
+}
+
+function buildWhatsAppMessage(params: {
+    name: string;
+    phone: string;
+    email: string;
+    college: string;
+    year: string;
+    department: string;
+    ticketId: string;
+    eventNames: string[];
+    amountPaise: number;
+}) {
+    const {
+        name,
+        phone,
+        email,
+        college,
+        year,
+        department,
+        ticketId,
+        eventNames,
+        amountPaise,
+    } = params;
+
+    return [
+        'Hello, I would like to complete my Manthan 2K26 registration payment.',
+        '',
+        `Ticket ID: ${ticketId}`,
+        `Name: ${name}`,
+        `Phone: ${phone}`,
+        `Email: ${email}`,
+        `College: ${college}`,
+        `Year: ${year}`,
+        `Department: ${department}`,
+        `Selected Events: ${eventNames.join(', ') || 'N/A'}`,
+        `Total Amount: ${formatAmountInINR(amountPaise)}`,
+    ].join('\n');
 }
 
 function getClientIp(request: NextRequest): string {
@@ -255,37 +306,41 @@ export async function POST(request: NextRequest) {
         // Generate ticket ID
         const primaryCategory = events[0]?.category || 'gen';
         let ticketId = generateTicketId(primaryCategory);
+        const { phone: whatsappPhone, coordinatorName } = getWhatsAppConfig();
 
-        // Create Razorpay order
-        const razorpay = getRazorpay();
-        console.log('Creating Razorpay order for amount (paise):', totalAmountPaise);
-        const order = await razorpay.orders.create({
-            amount: totalAmountPaise,
-            currency: 'INR',
-            receipt: ticketId,
-            notes: {
-                ticket_id: ticketId,
-                name: sanitizeInput(name),
-                email: email,
-                phone: phone,
-                event_count: event_ids.length.toString(),
+        const sanitizedName = sanitizeInput(name);
+        const sanitizedCollege = sanitizeInput(college);
+        const sanitizedDepartment = sanitizeInput(department);
+        const sanitizedPhone = phone.trim();
+        const sanitizedEmail = email.toLowerCase().trim();
+
+        const eventNames = events.map((event) => event.name);
+
+        const qrContent = `MANTHAN 2026 ENTRY PASS\n---------------------------\nTicket ID: ${ticketId}\nStatus: PAYMENT PENDING\nName: ${sanitizedName}\nEmail: ${sanitizedEmail}\nPhone: ${sanitizedPhone}\nCollege: ${sanitizedCollege}\nEvents: ${eventNames.join(', ') || 'None'}\nRegistered At: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}\n---------------------------\nPlease coordinate payment via WhatsApp.`;
+
+        const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
+            width: 400,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff',
             },
         });
 
         // Store PENDING registration (not confirmed until payment verified)
         const baseInsertPayload: Record<string, unknown> = {
             ticket_id: ticketId,
-            name: sanitizeInput(name),
-            email: email.toLowerCase().trim(),
-            phone: phone.trim(),
-            college: sanitizeInput(college),
+            name: sanitizedName,
+            email: sanitizedEmail,
+            phone: sanitizedPhone,
+            college: sanitizedCollege,
             year,
-            department: sanitizeInput(department),
+            department: sanitizedDepartment,
             event_ids,
             team_registrations: sanitizeTeamRegistrations(team_registrations as TeamRegistrationPayload[]),
             total_amount: totalAmountPaise,
             payment_status: 'PENDING',
-            razorpay_order_id: order.id,
+            qr_code: qrCodeDataUrl,
         };
 
         let insertError: DbErrorLike | null = null;
@@ -333,13 +388,59 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const whatsappMessage = buildWhatsAppMessage({
+            name: sanitizedName,
+            phone: sanitizedPhone,
+            email: sanitizedEmail,
+            college: sanitizedCollege,
+            year,
+            department: sanitizedDepartment,
+            ticketId,
+            eventNames,
+            amountPaise: totalAmountPaise,
+        });
+        const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(whatsappMessage)}`;
+
+        const registeredEvents = (event_ids || [])
+            .map((id: string) => {
+                const event = EVENT_CATALOG.find((entry) => entry.id === id);
+                return event
+                    ? {
+                        name: event.name,
+                        venue: event.venue,
+                        event_date: event.event_date,
+                    }
+                    : null;
+            })
+            .filter(Boolean) as Array<{ name: string; venue: string; event_date: string }>;
+
+        sendTicketEmail({
+            email: sanitizedEmail,
+            name: sanitizedName,
+            ticketId,
+            qrCodeDataUrl,
+            eventNames: eventNames.join(', '),
+            phone: sanitizedPhone,
+            college: sanitizedCollege,
+            totalAmount: totalAmountPaise,
+            events: registeredEvents,
+            paymentStatus: 'PENDING',
+            coordinatorName,
+            coordinatorPhone: whatsappPhone,
+        }).then((result) => {
+            if (result.success) {
+                console.log(`Pending ticket email sent to ${sanitizedEmail}`);
+            } else {
+                console.error(`Failed to send pending ticket email to ${sanitizedEmail}`, result.error);
+            }
+        });
+
         return NextResponse.json({
-            order: {
-                id: order.id,
-                amount: order.amount,
-                currency: order.currency,
-            },
             ticket_id: ticketId,
+            payment_status: 'PENDING',
+            whatsapp_url: whatsappUrl,
+            coordinator_name: coordinatorName,
+            coordinator_phone: whatsappPhone,
         });
     } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error('Unknown error');

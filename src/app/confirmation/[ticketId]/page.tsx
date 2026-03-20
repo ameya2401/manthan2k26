@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { Registration, Event } from '@/lib/types';
 import { formatFee, formatDate } from '@/lib/constants';
-import { CheckCircle, Download, MapPin, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Download, MapPin, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -20,6 +20,8 @@ export default function ConfirmationPage() {
     const [events, setEvents] = useState<Partial<Event>[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const isPaid = registration?.payment_status === 'PAID';
 
 
     useEffect(() => {
@@ -251,7 +253,7 @@ export default function ConfirmationPage() {
             <div class="title">MANTHAN</div>
             <div class="subtitle">2026 • Festival of Ancient Wisdom</div>
             <div class="ticket-id">${registration?.ticket_id}</div>
-            <div class="status">VERIFIED • PAID ENTRY</div>
+            <div class="status">${isPaid ? 'VERIFIED • PAID ENTRY' : 'PAYMENT PENDING • CONTACT COORDINATOR'}</div>
           </div>
           <div class="qr">
             <div class="qr-bg">
@@ -332,19 +334,25 @@ export default function ConfirmationPage() {
             <main className="flex-1 pt-24 pb-16 px-4 relative z-10">
                 <div className="max-w-2xl mx-auto">
                     {/* Success Banner */}
-                    <div className="text-center mb-10">
+                    <div className="text-center mb-10 rounded-xl bg-black/45 border border-white/10 backdrop-blur-sm px-4 py-5 sm:px-6">
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", damping: 12 }}
                         >
-                            <CheckCircle size={64} className="mx-auto text-[#2e7d32] mb-4" />
+                            {isPaid ? (
+                                <CheckCircle size={64} className="mx-auto text-[#2e7d32] mb-4" />
+                            ) : (
+                                <AlertTriangle size={64} className="mx-auto text-amber-600 mb-4" />
+                            )}
                         </motion.div>
-                        <h1 className="font-ancient text-3xl sm:text-4xl font-bold text-[#3d2b1f] mb-2 uppercase tracking-tight">
-                            Trial Inscribed!
+                        <h1 className="font-ancient text-3xl sm:text-4xl font-bold text-[#f8e7c5] mb-2 uppercase tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+                            {isPaid ? 'Trial Inscribed!' : 'Registration Recorded!'}
                         </h1>
-                        <p className="text-[#5c4033] font-ancient italic text-sm">
-                            Your passage has been verified in the eternal scrolls.
+                        <p className="text-[#f2dbaf] font-ancient text-sm sm:text-base">
+                            {isPaid
+                                ? 'Your passage has been verified in the eternal scrolls.'
+                                : 'Your ticket is issued. Complete payment with the coordinator to activate check-in.'}
                         </p>
                     </div>
 
@@ -387,11 +395,22 @@ export default function ConfirmationPage() {
                                             {registration.ticket_id}
                                         </span>
                                     </div>
-                                    <span className="mt-4 px-4 py-1.5 bg-green-500/10 text-green-600 text-[10px] font-bold rounded-full font-ancient uppercase tracking-widest border border-green-500/20">
-                                        ✓ VERIFIED passage
+                                    <span className={`mt-4 px-4 py-1.5 text-[10px] font-bold rounded-full font-ancient uppercase tracking-widest border ${isPaid
+                                        ? 'bg-green-500/10 text-green-600 border-green-500/20'
+                                        : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
+                                        }`}>
+                                        {isPaid ? '✓ Verified passage' : 'Payment pending'}
                                     </span>
                                 </div>
                             </div>
+
+                            {!isPaid && (
+                                <div className="mb-8 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                                    <p className="text-amber-700 font-ancient text-[11px] leading-relaxed italic">
+                                        Please coordinate payment with the Manthan coordinator on WhatsApp. Your registration is saved and your ticket is issued, but check-in is allowed only after payment is marked paid.
+                                    </p>
+                                </div>
+                            )}
 
                             {/* QR Code */}
                             {registration.qr_code && (
@@ -477,7 +496,9 @@ export default function ConfirmationPage() {
                                     <div className="flex items-start gap-4 p-4 rounded-xl bg-manthan-maroon/5 border border-manthan-maroon/10 mt-6">
                                         <ShieldCheck size={18} className="text-manthan-maroon flex-shrink-0 mt-0.5" />
                                         <p className="text-[#5c4033] text-[9px] font-ancient leading-relaxed italic text-left">
-                                            This passage is strictly for the participant named above. Please present this pass at the entrance for entry into the event.
+                                            {isPaid
+                                                ? 'This passage is strictly for the participant named above. Please present this pass at the entrance for entry into the event.'
+                                                : 'This passage is reserved for the participant named above. Complete payment first, then present this pass at the entrance.'}
                                         </p>
                                     </div>
                                 </div>

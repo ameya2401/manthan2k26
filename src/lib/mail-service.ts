@@ -16,8 +16,23 @@ export async function sendTicketEmail(details: {
     college: string;
     totalAmount: string | number;
     events: Array<{ name: string; venue?: string; event_date?: string }>;
+    paymentStatus?: 'PENDING' | 'PAID';
+    coordinatorName?: string;
+    coordinatorPhone?: string;
 }) {
-    const { email, name, ticketId, qrCodeDataUrl, phone, college, totalAmount, events } = details;
+    const {
+        email,
+        name,
+        ticketId,
+        qrCodeDataUrl,
+        phone,
+        college,
+        totalAmount,
+        events,
+        paymentStatus = 'PAID',
+        coordinatorName,
+        coordinatorPhone,
+    } = details;
 
     const apiKey = process.env.BREVO_API_KEY;
     const senderEmail = process.env.BREVO_SENDER_EMAIL;
@@ -45,12 +60,12 @@ export async function sendTicketEmail(details: {
             const amount = parseFloat(numericPart);
             // If it's a huge number like 5000, it's likely paise
             if (amount >= 100) {
-                formattedAmount = `INR ${ (amount / 100).toFixed(2) }`;
+                formattedAmount = `INR ${(amount / 100).toFixed(2)}`;
             } else {
-                formattedAmount = `INR ${ amount.toFixed(2) }`;
+                formattedAmount = `INR ${amount.toFixed(2)}`;
             }
         } else if (typeof totalAmount === 'number') {
-            formattedAmount = `INR ${ (totalAmount / 100).toFixed(2) }`;
+            formattedAmount = `INR ${(totalAmount / 100).toFixed(2)}`;
         }
 
         // --- 2. GENERATE PDF ---
@@ -109,10 +124,12 @@ export async function sendTicketEmail(details: {
         doc.setFontSize(24);
         doc.text(ticketId, 105, 77, { align: 'center' });
 
-        doc.setTextColor(74, 222, 128); // Green
+        const isPaid = paymentStatus === 'PAID';
+
+        doc.setTextColor(isPaid ? 74 : 217, isPaid ? 222 : 119, isPaid ? 128 : 6);
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(11);
-        doc.text("✓ VERIFIED • PAID ENTRY", 105, 88, { align: 'center' });
+        doc.text(isPaid ? "✓ VERIFIED • PAID ENTRY" : "PAYMENT PENDING • COORDINATE ON WHATSAPP", 105, 88, { align: 'center' });
 
         // QR Code Box
         doc.setFillColor(255, 255, 255);
@@ -122,7 +139,7 @@ export async function sendTicketEmail(details: {
         doc.setTextColor(212, 175, 55);
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text("PRESENT THIS QR AT THE VENUE ENTRANCE", 105, 188, { align: 'center' });
+        doc.text(isPaid ? "PRESENT THIS QR AT THE VENUE ENTRANCE" : "SHOW THIS PASS ID WHILE COMPLETING PAYMENT", 105, 188, { align: 'center' });
 
         // Divider
         doc.setDrawColor(100, 100, 100); // Using a grey color instead of alpha
@@ -179,6 +196,14 @@ export async function sendTicketEmail(details: {
         const pdfBase64 = Buffer.from(pdfBuffer).toString('base64');
 
         // --- 3. CONSTRUCT EMAIL BODY ---
+        const statusHeading = isPaid ? 'Success! Your Passage is Confirmed.' : 'Registration Received - Payment Pending';
+        const statusBody = isPaid
+            ? 'Your journey into the <strong>Festival of Ancient Wisdom</strong> has been inscribed. Your payment has been verified successfully.'
+            : `Your registration is recorded in our archive and your pass is attached. Please complete payment with <strong>${coordinatorName || 'our coordinator'}</strong>${coordinatorPhone ? ` on <strong>${coordinatorPhone}</strong>` : ''}.`;
+        const statusBadge = isPaid
+            ? '<div class="status-pill paid">Verified • Paid Entry</div>'
+            : '<div class="status-pill pending">Payment Pending • Action Required</div>';
+
         const emailHtml = `
 <div style="font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; max-width: 600px; margin: 0 auto; line-height: 1.6; border: 1px solid #eee; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #000000; padding: 25px 20px;">
@@ -196,9 +221,15 @@ export async function sendTicketEmail(details: {
     </table>
     
     <div style="padding: 40px 30px;">
-        <h2 style="color: #111; margin-top: 0; font-size: 22px;">Success! Your Passage is Confirmed.</h2>
+        <h2 style="color: #111; margin-top: 0; font-size: 22px;">${statusHeading}</h2>
         <p>Hi <strong>${name}</strong>,</p>
-        <p>Your journey into the <strong>Festival of Ancient Wisdom</strong> has been inscribed. Your payment has been verified successfully.</p>
+        <p>${statusBody}</p>
+        <style>
+            .status-pill { margin: 0 auto 16px; display: inline-block; padding: 8px 14px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+            .status-pill.paid { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+            .status-pill.pending { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        </style>
+        <div style="text-align:center;">${statusBadge}</div>
         
         <div style="background-color: #fffbeb; border: 1px solid #fde68a; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center;">
             <p style="margin: 0; font-size: 13px; color: #92400e; text-transform: uppercase; letter-spacing: 1px;">Official Ticket ID</p>
@@ -228,7 +259,9 @@ export async function sendTicketEmail(details: {
             body: JSON.stringify({
                 sender: { name: senderName, email: senderEmail },
                 to: [{ email: email, name: name }],
-                subject: `🎟️ Entry Pass Confirmed: ${ticketId} - Manthan 2k26`,
+                subject: isPaid
+                    ? `🎟️ Entry Pass Confirmed: ${ticketId} - Manthan 2k26`
+                    : `📝 Registration Received (Payment Pending): ${ticketId} - Manthan 2k26`,
                 htmlContent: emailHtml,
                 attachment: [
                     {
