@@ -2,6 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { jsPDF } from 'jspdf';
 
+function formatCoordinatorPhoneForEmail(phone?: string): string {
+    if (!phone) {
+        return '';
+    }
+
+    const digitsOnly = phone.replace(/\D/g, '');
+    if (digitsOnly.startsWith('91') && digitsOnly.length === 12) {
+        return digitsOnly.slice(2);
+    }
+
+    return digitsOnly || phone;
+}
+
 /**
  * Utility to send transactional emails via Brevo (formerly Sendinblue)
  * with a clean email body and a PDF attachment.
@@ -197,9 +210,10 @@ export async function sendTicketEmail(details: {
 
         // --- 3. CONSTRUCT EMAIL BODY ---
         const statusHeading = isPaid ? 'Success! Your Passage is Confirmed.' : 'Registration Received - Payment Pending';
+        const coordinatorPhoneForEmail = formatCoordinatorPhoneForEmail(coordinatorPhone);
         const statusBody = isPaid
             ? 'Your journey into the <strong>Festival of Ancient Wisdom</strong> has been inscribed. Your payment has been verified successfully.'
-            : `Your registration is recorded in our archive and your pass is attached. Please complete payment with <strong>${coordinatorName || 'our coordinator'}</strong>${coordinatorPhone ? ` on <strong>${coordinatorPhone}</strong>` : ''}.`;
+            : `Your registration is recorded in our archive and your pass is attached. Please complete payment with <strong>${coordinatorName || 'our coordinator'}</strong>${coordinatorPhoneForEmail ? ` on <strong>${coordinatorPhoneForEmail}</strong>` : ''}.`;
         const statusBadge = isPaid
             ? '<div class="status-pill paid">Verified • Paid Entry</div>'
             : '<div class="status-pill pending">Payment Pending • Action Required</div>';

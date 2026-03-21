@@ -22,6 +22,10 @@ interface CreateOrderResponse {
     coordinator_phone?: string;
 }
 
+interface WhatsAppConfigResponse {
+    phone?: string;
+}
+
 
 
 const yearOptions = ['UG', 'PG'];
@@ -113,6 +117,83 @@ function RegisterForm() {
     const [paymentMessage, setPaymentMessage] = useState('');
     const [paymentError, setPaymentError] = useState('');
     const [focusedField, setFocusedField] = useState<string | null>(null);
+
+    const publicWhatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_PAYMENT_NUMBER || '').replace(/\D/g, '');
+    const [instantWhatsappNumber, setInstantWhatsappNumber] = useState(publicWhatsappNumber);
+
+    useEffect(() => {
+        if (/^\d{11,15}$/.test(publicWhatsappNumber)) {
+            setInstantWhatsappNumber(publicWhatsappNumber);
+            return;
+        }
+
+        let cancelled = false;
+
+        async function fetchWhatsappNumber() {
+            try {
+                const res = await fetch('/api/payment/whatsapp-config');
+                if (!res.ok) {
+                    return;
+                }
+
+                const data = (await res.json()) as WhatsAppConfigResponse;
+                const sanitized = (data.phone || '').replace(/\D/g, '');
+                if (!cancelled && /^\d{11,15}$/.test(sanitized)) {
+                    setInstantWhatsappNumber(sanitized);
+                }
+            } catch {
+                // Keep graceful fallback to existing about:blank behavior.
+            }
+        }
+
+        fetchWhatsappNumber();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [publicWhatsappNumber]);
+
+    const buildInstantWhatsappUrl = useCallback(() => {
+        if (!/^\d{11,15}$/.test(instantWhatsappNumber)) {
+            return '';
+        }
+
+        const instantTotal = events
+            .filter((event) => selectedIds.includes(event.id))
+            .reduce((sum, event) => sum + estimateEventAmount(event, teamRegistrations[event.id]), 0);
+
+        const selectedEventNames = events
+            .filter((event) => selectedIds.includes(event.id))
+            .map((event) => event.name)
+            .join(', ') || 'N/A';
+
+        const instantMessage = [
+            'Hello, I would like to complete my Manthan 2K26 registration payment.',
+            '',
+            'Ticket ID: Generating...',
+            `Name: ${formData.name.trim() || 'N/A'}`,
+            `Phone: ${formData.phone.trim() || 'N/A'}`,
+            `Email: ${formData.email.trim() || 'N/A'}`,
+            `College: ${formData.college.trim() || 'N/A'}`,
+            `Year: ${formData.year.trim() || 'N/A'}`,
+            `Department: ${formData.department.trim() || 'N/A'}`,
+            `Selected Events: ${selectedEventNames}`,
+            `Estimated Amount: ${formatFee(instantTotal)}`,
+        ].join('\n');
+
+        return `https://api.whatsapp.com/send?phone=${instantWhatsappNumber}&text=${encodeURIComponent(instantMessage)}`;
+    }, [
+        events,
+        formData.college,
+        formData.department,
+        formData.email,
+        formData.name,
+        formData.phone,
+        formData.year,
+        instantWhatsappNumber,
+        selectedIds,
+        teamRegistrations,
+    ]);
 
     // Fetch events and handle pre-selection resolution
     useEffect(() => {
@@ -300,12 +381,13 @@ function RegisterForm() {
 
     // Handle payment
     const handlePayment = async () => {
-        // Pre-open a tab synchronously from the click event to avoid popup blockers
-        const pendingWhatsappWindow = window.open('about:blank', '_blank');
+        // Open WhatsApp synchronously from click to avoid popup blockers and blank tab delay.
+        const instantWhatsappUrl = buildInstantWhatsappUrl();
+        const pendingWhatsappWindow = window.open(instantWhatsappUrl || 'about:blank', '_blank');
 
         setProcessing(true);
         setPaymentError('');
-        setPaymentMessage('Creating your registration and preparing WhatsApp...');
+        setPaymentMessage(instantWhatsappUrl ? 'Opening WhatsApp and preparing your ticket...' : 'Creating your registration and preparing WhatsApp...');
 
         try {
             // Create pending registration and receive WhatsApp redirect URL
