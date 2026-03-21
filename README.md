@@ -49,6 +49,8 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 # WhatsApp Payment Configuration
 WHATSAPP_PAYMENT_NUMBER=9198XXXXXXXX
 WHATSAPP_COORDINATOR_NAME="Coordinator Name"
+# Optional: enables instant WhatsApp opening on click before server response
+NEXT_PUBLIC_WHATSAPP_PAYMENT_NUMBER=9198XXXXXXXX
 
 # Brevo (Email) Configuration
 BREVO_API_KEY=your_brevo_api_key
