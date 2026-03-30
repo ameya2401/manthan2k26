@@ -1,115 +1,169 @@
-# Manthan 2026 - Festival of Ancient Wisdom
+# Manthan 2026 Platform
 
-Manthan 2026 is a comprehensive tech-fest management platform designed for BVIMIT. It handles event discovery, multi-event registrations, WhatsApp-coordinated payments, and automated entry-pass generation for technical, cultural, and sports events.
+Production-ready festival registration platform for BVIMIT Manthan 2026.
 
-## Core Features
+It supports event discovery, registration, payment coordination via WhatsApp, QR-enabled pass generation, email delivery, and organizer operations through a secure admin dashboard.
 
-- **Event Catalog**: Dynamic listing of Technical (AI Website Building, Typing, Quiz, Canva), Cultural (Dance, Singing), and Sports (Badminton, Cricket, Volleyball, etc.) events.
-- **Registration System**: Support for solo and team-based registrations with server-side fee validation.
-- **Payment Coordination**: Registration-first flow with WhatsApp handoff for same-day QR/UPI settlement and follow-up tracking.
-- **Automated Ticketing**: Real-time generation of digital entry passes with unique QR codes for venue validation.
-- **Email Notifications**: Transactional emails sent via Brevo (formerly Sendinblue) with PDF ticket attachments.
-- **Admin Dashboard**: Centralized management for registrations, attendance check-ins, live statistics, and manual cash payment marking.
-- **Data Export**: Specialized CSV export functionality for sharing registration data with faculty and committees.
-- **PDF Generation**: High-quality, branded PDF entry passes generated server-side using jsPDF.
+## What This Application Does
 
-## Technology Stack
+- Serves a public event catalog for technical, cultural, and sports events.
+- Handles participant registration for single or multiple events.
+- Creates a ticket immediately with payment status tracking.
+- Coordinates payment flow using WhatsApp-first handoff.
+- Supports legacy Razorpay verification and webhook processing.
+- Generates branded ticket PDFs and sends transactional emails via Brevo.
+- Provides admin workflows for login, registrations, check-in, stats, and exports.
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, Lucide React.
-- **Backend/Database**: Supabase (PostgreSQL), Next.js API Routes.
-- **Payments**: WhatsApp handoff (with optional legacy Razorpay compatibility paths retained).
-- **Email & PDF**: Brevo API, jsPDF, QRCode.js.
-- **Validation**: Zod (Schema validation), Rate-limiting for API protection.
+## Tech Stack
 
-## Project Structure
+- Framework: Next.js 14 (App Router) + React 18 + TypeScript.
+- Styling/UI: Tailwind CSS, Framer Motion, Lucide React.
+- Data: Supabase (PostgreSQL + Auth).
+- Validation and safety: Zod + custom rate limiting.
+- Communications: Brevo API (email), WhatsApp handoff, optional Razorpay compatibility endpoints.
+
+## Project Layout
 
 ```text
-src/
-├── app/            # Next.js App Router (Pages and API Routes)
-├── components/     # UI Components (Client-side and Server-side)
-├── lib/            # Shared logic, Constants, and Database clients
-│   ├── supabase/   # Supabase client and database schema
-│   ├── mail-service.ts # Brevo integration and PDF generation
-│   ├── constants.ts    # Global configurations and schedule
-│   └── events-catalog.ts # Source of truth for all festival events
-├── scripts/        # Database maintenance and admin setup scripts
-└── public/         # Static assets and branding
+.
+├── src/
+│   ├── app/                    # App Router pages and API routes
+│   ├── components/             # Shared UI components
+│   ├── lib/                    # Domain logic, types, constants, integrations
+│   │   └── supabase/           # Supabase client/server helpers + SQL schema
+│   └── middleware.ts           # Security headers and request guards
+├── scripts/                    # Operational and maintenance scripts
+├── public/                     # Static assets (fonts, profile, media)
+├── update_schema.sql           # Schema updates and optimizations
+├── add_viewer_role.sql         # Role extension SQL for viewer account
+└── vercel.json                 # Deployment configuration
 ```
 
-## Environment Configuration
+## Prerequisites
 
-Create a `.env.local` file in the root directory with the following variables:
+- Node.js 18.18+ (Node 20 LTS recommended).
+- npm 9+.
+- A Supabase project with SQL editor access.
+- Brevo account/API key for email sending.
+- Optional Razorpay credentials if using verify/webhook compatibility paths.
 
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+## Environment Setup
 
-# WhatsApp Payment Configuration
-WHATSAPP_PAYMENT_NUMBER=9198XXXXXXXX
-WHATSAPP_COORDINATOR_NAME="Coordinator Name"
-# Optional: enables instant WhatsApp opening on click before server response
-NEXT_PUBLIC_WHATSAPP_PAYMENT_NUMBER=9198XXXXXXXX
+1. Copy environment template:
 
-# Brevo (Email) Configuration
-BREVO_API_KEY=your_brevo_api_key
-BREVO_SENDER_EMAIL=your_sender_email
-BREVO_SENDER_NAME="Manthan 2k26 Team"
-
-# Admin Access
-ADMIN_PASSWORD=your_dashboard_password
+```bash
+cp .env.example .env.local
 ```
+
+2. Fill all required values in `.env.local`.
+
+### Environment Variables
+
+Required core variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `WHATSAPP_PAYMENT_NUMBER`
+- `WHATSAPP_COORDINATOR_NAME`
+- `NEXT_PUBLIC_BASE_URL`
+
+Required for ticket email delivery:
+
+- `BREVO_API_KEY`
+- `BREVO_SENDER_EMAIL`
+- `BREVO_SENDER_NAME`
+
+Optional legacy Razorpay compatibility:
+
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+
+Optional UX helper:
+
+- `NEXT_PUBLIC_WHATSAPP_PAYMENT_NUMBER`
 
 ## Local Development
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+Install and run:
 
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+npm install
+npm run dev
+```
 
-3. Build for production:
-   ```bash
-   npm run build
-   ```
+Run quality checks:
 
-## Database Setup
-
-The database is hosted on Supabase. To initialize or update the schema:
-
-1. Execute `src/lib/supabase/schema.sql` in the Supabase SQL Editor to create base tables and RLS policies.
-2. Execute `update_schema.sql` to apply the latest optimizations, views, and indexes.
-3. Relevant views like `organized_event_registrations_export` are used for flat-file CSV exports.
-
-## Core API Endpoints
-
-### Public Endpoints
-- `GET /api/events`: Retrieve all active events.
-- `POST /api/payment/create-order`: Create pending registration, generate pass, and return WhatsApp handoff URL.
-- `POST /api/payment/verify`: Legacy Razorpay verification endpoint (kept for compatibility/rollback).
-- `GET /api/registration/[ticketId]`: Retrieve pass details for pending or paid registrations.
-
-### Admin Endpoints
-- `POST /api/admin/login`: Secure dashboard access.
-- `GET /api/admin/registrations`: List all attendee data.
-- `POST /api/admin/check-in/[id]`: Mark attendee presence.
-- `GET /api/admin/stats`: Aggregate registration and collection statistics.
-- `GET /api/admin/export`: Generate CSV for faculty records.
-
-## Deployment
-
-The project is optimized for deployment on Vercel. Ensure all environment variables are mapped in the Vercel dashboard and that the Supabase instance is accessible.
-
-Build and Lint checks should be performed before every merge:
 ```bash
 npm run lint
+npm run typecheck
 npm run build
 ```
 
+## Database Bootstrapping
+
+Execute SQL in Supabase SQL editor in this order:
+
+1. `src/lib/supabase/schema.sql`
+2. `update_schema.sql`
+3. `add_viewer_role.sql` (only if using viewer role flow)
+
+## NPM Scripts
+
+- `npm run dev`: start local dev server.
+- `npm run build`: create production build.
+- `npm run start`: start built app.
+- `npm run lint`: run ESLint.
+- `npm run typecheck`: run TypeScript checks.
+- `npm run check`: lint + typecheck + build.
+- `npm run ops:cleanup-db`: delete operational data (use carefully).
+- `npm run ops:verify-cleanup`: verify cleanup results.
+- `npm run ops:reconcile`: reconcile pending payments with Razorpay.
+- `npm run ops:setup-admin`: create/update admin user from env values.
+- `npm run ops:setup-viewer`: create/update viewer user from env values.
+- `npm run ops:force-viewer-reset`: force reset viewer credentials from env values.
+- `npm run ops:simulate-webhook`: send a test webhook to configured server.
+
+## API Surface (High-Level)
+
+Public routes:
+
+- `GET /api/events`
+- `POST /api/payment/create-order`
+- `POST /api/payment/verify`
+- `GET /api/payment/whatsapp-config`
+- `GET /api/registration/[ticketId]`
+
+Admin routes:
+
+- `POST /api/admin/login`
+- `GET /api/admin/registrations`
+- `POST /api/admin/check-in/[id]`
+- `GET /api/admin/stats`
+- `GET /api/admin/export`
+- `POST /api/admin/cash-payment`
+- `POST /api/admin/cash-payment/manual`
+- `GET /api/admin/cash-payment/export`
+
+## Deployment (Vercel)
+
+This repository is configured for Vercel (`vercel.json`).
+
+Checklist before deploy:
+
+1. Configure all production environment variables in Vercel.
+2. Ensure Supabase network and keys are correct for production.
+3. Run `npm run check` locally or in CI.
+4. Verify `/api/payment/webhook` receives valid `x-razorpay-signature` if webhook mode is enabled.
+
+## Operational Notes
+
+- Do not commit `.env.local` or secrets.
+- Service role keys must only be used server-side.
+- Keep utility scripts restricted to trusted operators.
+- Prefer environment variables over hardcoded credentials for all admin scripts.
+
 ---
-Official platform for Manthan 2026. Designed and Developed for BVIMIT Navi Mumbai.
+Official platform for BVIMIT Manthan 2026.

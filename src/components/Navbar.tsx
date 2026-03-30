@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, ChevronRight, Sparkles } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import AnimatedButton from './AnimatedButton';
+import RegistrationClosedButton from './RegistrationClosedButton';
 
 const navLinks = [
     { href: '/', label: 'Home' },
@@ -138,16 +138,11 @@ export default function Navbar() {
                     </div>
 
                     <div className="pl-4">
-                        <Link
-                            href="/register"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block transition-transform hover:scale-105 active:scale-95"
-                        >
-                            <AnimatedButton icon={Sparkles}>
+                        <div className="inline-block transition-transform hover:scale-105 active:scale-95">
+                            <RegistrationClosedButton variant="animated">
                                 Register
-                            </AnimatedButton>
-                        </Link>
+                            </RegistrationClosedButton>
+                        </div>
                     </div>
                 </div>
 
@@ -212,20 +207,15 @@ export default function Navbar() {
                                 transition={{ delay: 0.6 }}
                                 className="pt-12 w-full"
                             >
-                                <Link
-                                    href="/register"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full flex justify-center"
-                                >
-                                    <AnimatedButton
-                                        icon={Sparkles}
+                                <div className="w-full flex justify-center">
+                                    <RegistrationClosedButton
+                                        variant="animated"
                                         className="w-full py-4 sm:py-6 text-xl sm:text-2xl"
+                                        onClose={() => setIsOpen(false)}
                                     >
                                         JOIN THE LEGEND
-                                    </AnimatedButton>
-                                </Link>
+                                    </RegistrationClosedButton>
+                                </div>
                             </motion.div>
                         </div>
                     </motion.div>

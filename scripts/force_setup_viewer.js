@@ -10,9 +10,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function forceResetViewer() {
-  const email = 'viewer@manthan.in';
-  const password = 'viewmanthan2026';
-  const name = 'Manthan Viewer';
+  const email = process.env.VIEWER_ACCOUNT_EMAIL || '';
+  const password = process.env.VIEWER_ACCOUNT_PASSWORD || '';
+  const name = process.env.VIEWER_ACCOUNT_NAME || 'Manthan Viewer';
+
+  if (!email || !password) {
+    throw new Error('VIEWER_ACCOUNT_EMAIL and VIEWER_ACCOUNT_PASSWORD are required in .env.local');
+  }
 
   console.log(`Force resetting account: ${email}...`);
 
@@ -65,7 +69,7 @@ async function forceResetViewer() {
   console.log('\n✅ SUCCESS!');
   console.log('-----------------------------------');
   console.log(`Email: ${email}`);
-  console.log(`Password: ${password}`);
+  console.log('Password: [reset from VIEWER_ACCOUNT_PASSWORD]');
   console.log('Role: viewer');
   console.log('-----------------------------------');
   console.log('You can now log in at /admin');

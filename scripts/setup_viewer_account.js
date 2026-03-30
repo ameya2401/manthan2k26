@@ -69,12 +69,17 @@ async function updateAdminTable(id, email, name) {
   console.log('Successfully added to admin_users table as viewer:', data[0]);
 }
 
-// Define the viewer account
+// Define the viewer account via environment variables
 const viewerAccount = {
-  email: 'viewer@manthan.in',
-  password: 'viewmanthan2026', // They can change this later if they have access to SQL
-  name: 'Manthan Viewer'
+  email: process.env.VIEWER_ACCOUNT_EMAIL || '',
+  password: process.env.VIEWER_ACCOUNT_PASSWORD || '',
+  name: process.env.VIEWER_ACCOUNT_NAME || 'Manthan Viewer'
 };
+
+if (!viewerAccount.email || !viewerAccount.password) {
+  console.error('Error: VIEWER_ACCOUNT_EMAIL and VIEWER_ACCOUNT_PASSWORD are required in .env.local');
+  process.exit(1);
+}
 
 async function main() {
   try {
@@ -82,7 +87,7 @@ async function main() {
     console.log('\nViewer account generated successfully!');
     console.log('-----------------------------------');
     console.log(`Email: ${viewerAccount.email}`);
-    console.log(`Password: ${viewerAccount.password}`);
+    console.log('Password: [set from VIEWER_ACCOUNT_PASSWORD]');
     console.log('-----------------------------------');
   } catch (error) {
     console.error('Error:', error.message);

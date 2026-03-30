@@ -1,15 +1,24 @@
 const crypto = require('crypto');
+const dotenv = require('dotenv');
+const path = require('path');
+
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 // --- Configuration ---
 // 1. URL of your deployed application or local server
-const SERVER_URL = 'https://bvimitmanthan.vercel.app'; // Change to production URL if needed 
+const SERVER_URL = process.env.SIMULATE_WEBHOOK_SERVER_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-// 2. The webhook secret you configured in .env.local (RAZORPAY_WEBHOOK_SECRET)
-const WEBHOOK_SECRET = 'manthan2k26';
+// 2. The webhook secret configured in .env.local
+const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
 
-// 3. The Order ID and Payment ID of the person who missed their pass
-const ORDER_ID = 'order_ST7VQ4vNUL7Yee';
-const PAYMENT_ID = 'pay_ST7VfaXD5ulVtv';
+// 3. The Order ID and Payment ID for simulation
+const ORDER_ID = process.env.SIMULATE_WEBHOOK_ORDER_ID || '';
+const PAYMENT_ID = process.env.SIMULATE_WEBHOOK_PAYMENT_ID || '';
+
+if (!WEBHOOK_SECRET || !ORDER_ID || !PAYMENT_ID) {
+    console.error('Missing required values. Set RAZORPAY_WEBHOOK_SECRET, SIMULATE_WEBHOOK_ORDER_ID, and SIMULATE_WEBHOOK_PAYMENT_ID in .env.local');
+    process.exit(1);
+}
 
 // --- Script ---
 async function simulateWebhook() {

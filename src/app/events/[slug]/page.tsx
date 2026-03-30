@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 
 import { getEventBySlug, getActiveEvents } from '@/lib/events-catalog';
 import BackButton from '@/components/BackButton';
+import RegistrationClosedButton from '@/components/RegistrationClosedButton';
 
 export async function generateStaticParams() {
     const events = getActiveEvents();
@@ -181,12 +182,13 @@ export default function EventDetailPage({
 
                             {/* Register CTA */}
                             <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                                <Link
-                                    href={`/register?event=${event.id}`}
+                                <RegistrationClosedButton
+                                    variant="solid"
                                     className="flex-1 py-4 bg-gradient-to-r from-manthan-maroon to-manthan-crimson text-white font-bold rounded-lg text-center text-lg hover:rotate-1 transition-all duration-300 shadow-xl shadow-manthan-maroon/20 uppercase tracking-widest font-ancient"
+                                    contextLabel="The legacy continues."
                                 >
                                     Register Now
-                                </Link>
+                                </RegistrationClosedButton>
                                 <Link
                                     href="/events"
                                     className="px-8 py-4 border border-manthan-maroon/30 text-manthan-maroon font-semibold rounded-lg text-center hover:bg-manthan-maroon/5 transition-all duration-300 font-ancient uppercase tracking-widest text-sm"

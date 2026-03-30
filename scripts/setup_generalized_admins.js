@@ -69,13 +69,18 @@ async function updateAdminTable(id, email, name, role) {
   console.log('Successfully added to admin_users table:', data[0]);
 }
 
-// Define the single shared organizer account
+// Define the single shared organizer account via environment variables
 const sharedAccount = {
-  email: 'admin@manthan.in', // Use a generic name
-  password: 'manthan@2026', // Set a strong password
-  name: 'Manthan Admin',
-  role: 'admin' // Staff allows viewing registrations and checking in
+  email: process.env.ADMIN_ACCOUNT_EMAIL || '',
+  password: process.env.ADMIN_ACCOUNT_PASSWORD || '',
+  name: process.env.ADMIN_ACCOUNT_NAME || 'Manthan Admin',
+  role: 'admin'
 };
+
+if (!sharedAccount.email || !sharedAccount.password) {
+  console.error('Error: ADMIN_ACCOUNT_EMAIL and ADMIN_ACCOUNT_PASSWORD are required in .env.local');
+  process.exit(1);
+}
 
 async function main() {
   try {
