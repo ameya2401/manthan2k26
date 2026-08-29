@@ -136,7 +136,7 @@ export const scheduleData = [
         date: 'March 25, 2026 - Day 2',
         slots: [
             { time: '09:00 AM - 01:00 PM', event: 'Ekal / Samuha Nritya (Dance)', venue: 'HM Auditorium', category: 'cultural' },
-            { time: '01:00 AM - 04:00 PM', event: 'Swara Ekam / Sangam (Singing)', venue: 'HM Auditorium', category: 'cultural' },
+            { time: '01:00 PM - 04:00 PM', event: 'Swara Ekam / Sangam (Singing)', venue: 'HM Auditorium', category: 'cultural' },
             { time: '04:00 PM onwards', event: 'Closing Ceremony & Prize Distribution', venue: 'HM Auditorium', category: 'cultural' },
         ],
     },

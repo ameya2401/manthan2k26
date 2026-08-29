@@ -1,14 +1,27 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { MessageCircle, ArrowRight, Clock3 } from 'lucide-react';
 
 const REDIRECT_SECONDS = 5;
 
 export default function PaymentPendingPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-manthan-black">
+                <LoadingSpinner />
+            </div>
+        }>
+            <PaymentPendingContent />
+        </Suspense>
+    );
+}
+
+function PaymentPendingContent() {
     const params = useParams();
     const searchParams = useSearchParams();
     const ticketId = params.ticketId as string;

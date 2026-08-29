@@ -233,7 +233,7 @@ export default function Chatbot() {
                                         type="text"
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                                         placeholder="Scribe your query here..."
                                         className="w-full bg-[#f4e4bc]/10 border border-manthan-gold/30 rounded-lg py-3 pl-4 pr-12 text-sm text-manthan-gold placeholder:text-manthan-gold/30 focus:outline-none focus:border-manthan-gold/60 focus:bg-[#f4e4bc]/20 transition-all font-serif"
                                     />

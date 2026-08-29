@@ -27,13 +27,27 @@ async function verifyAdmin(request: NextRequest) {
 
     if (!user) return null;
 
-    const { data: adminUser } = await supabaseAdmin
+    const { data: adminById } = await supabaseAdmin
         .from('admin_users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-    return adminUser;
+    if (adminById) {
+        return adminById;
+    }
+
+    if (!user.email) {
+        return null;
+    }
+
+    const { data: adminByEmail } = await supabaseAdmin
+        .from('admin_users')
+        .select('*')
+        .ilike('email', user.email)
+        .maybeSingle();
+
+    return adminByEmail;
 }
 
 // POST - Check in a registration

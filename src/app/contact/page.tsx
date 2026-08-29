@@ -99,7 +99,7 @@ export default function ContactPage() {
                                         icon={<MapPin size={24} />}
                                         label="The Great Hall"
                                         value="BVIMIT, Sector-8, Belapur, CBD, Navi Mumbai - 400614"
-                                        link="https://maps.google.com"
+                                        link="https://maps.google.com/?q=Bharati+Vidyapeeth+Institute+of+Management+and+Information+Technology+Belapur+Navi+Mumbai"
                                     />
                                 </div>
 
