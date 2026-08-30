@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import RegistrationClosedButton from './RegistrationClosedButton';
+import AnimatedButton from './AnimatedButton';
 
 const navLinks = [
     { href: '/', label: 'Home' },
@@ -138,11 +138,11 @@ export default function Navbar() {
                     </div>
 
                     <div className="pl-4">
-                        <div className="inline-block transition-transform hover:scale-105 active:scale-95">
-                            <RegistrationClosedButton variant="animated">
+                        <Link href="/register" className="inline-block transition-transform hover:scale-105 active:scale-95">
+                            <AnimatedButton>
                                 Register
-                            </RegistrationClosedButton>
-                        </div>
+                            </AnimatedButton>
+                        </Link>
                     </div>
                 </div>
 
@@ -208,13 +208,17 @@ export default function Navbar() {
                                 className="pt-12 w-full"
                             >
                                 <div className="w-full flex justify-center">
-                                    <RegistrationClosedButton
-                                        variant="animated"
-                                        className="w-full py-4 sm:py-6 text-xl sm:text-2xl"
-                                        onClose={() => setIsOpen(false)}
+                                    <Link
+                                        href="/register"
+                                        onClick={() => setIsOpen(false)}
+                                        className="w-full flex justify-center"
                                     >
-                                        JOIN THE LEGEND
-                                    </RegistrationClosedButton>
+                                        <AnimatedButton
+                                            className="w-full py-4 sm:py-6 text-xl sm:text-2xl"
+                                        >
+                                            JOIN THE LEGEND
+                                        </AnimatedButton>
+                                    </Link>
                                 </div>
                             </motion.div>
                         </div>
