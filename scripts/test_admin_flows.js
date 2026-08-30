@@ -16,7 +16,7 @@ async function testAdminFlows() {
 
     // Ensure a test admin has a known password in auth for login testing
     const testEmail = process.env.ADMIN_ACCOUNT_EMAIL || 'admin@manthan.in';
-    const testPass = process.env.ADMIN_ACCOUNT_PASSWORD || 'AdminPass123!@#';
+    const testPass = process.env.ADMIN_ACCOUNT_PASSWORD || 'manthan@2026';
 
     // Update or create user in Supabase Auth
     const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
